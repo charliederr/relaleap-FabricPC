@@ -31,3 +31,13 @@
 
 - Added `scripts/jax_gpu_burn.py` and `scripts/run_jax_gpu_burn.sh` for a direct 60-second JAX matmul workload that does not set `JAX_PLATFORMS` or import the Phase 0 package setup.
 - The script prints JAX backend/device selection and keeps a dense jitted matmul loop active so GPU use can be checked from a separate `nvidia-smi` process.
+
+## Phase 0 Artifact Parity Slice
+
+- Ported the source RelaLeap comparison artifact contract into `relaleap_fabricpc.experiments.compare`: baseline schema version 3, stable baseline mismatch fields, fixed top-level comparison metrics schema, and richer notes with HEP/support sections.
+- Ported the source artifact checker behavior into `relaleap_fabricpc.experiments.check_artifacts`, including child run artifact validation and baseline-reference reporting.
+- Added focused tests for comparison parity, config inventory compatibility, and the checked FabricPC Phase 0 baseline.
+- Mirrored 92 source Phase 0 YAML configs into `configs/` and created `baselines/phase0_fabricpc_comparison.json` from the passing FabricPC comparison.
+- Verified `/home/ni/repos/fpc/py3/bin/python -m pytest` passes with 19 tests, then reran the default comparison and artifact checker successfully.
+- JAX GPU visibility was confirmed by the user (`gpu`, `CudaDevice(id=0)`); stopped backend-probe work and returned to porting/artifact parity.
+

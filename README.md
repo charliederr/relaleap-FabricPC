@@ -90,9 +90,22 @@ By default this runs:
 
 The comparison writes `summary.json`, `metrics.csv`, and `notes.md` under the
 comparison directory. The verdict passes only when all child runs are `ok`, all
-Phase 0 model invariants pass, and all required artifacts exist.
+Phase 0 model invariants pass, and all required artifacts exist. The top-level
+comparison artifacts now follow the source RelaLeap Phase 0 schema, including a
+fixed comparison metrics CSV, HEP alpha acceptance fields, and child-run
+artifact checks.
 
-To create a baseline from a known-good comparison:
+The source Phase 0 config inventory is mirrored under `configs/`; the default
+comparison stays small, but larger char/token, support-stress, contextual-router,
+and objective-gate configs are available for explicit `--config` runs.
+
+A checked FabricPC baseline is available at:
+
+```text
+baselines/phase0_fabricpc_comparison.json
+```
+
+To refresh that baseline from a known-good comparison:
 
 ```bash
 /home/ni/repos/fpc/py3/bin/python -m relaleap_fabricpc.experiments.compare \
@@ -115,7 +128,7 @@ To compare a run against that baseline:
   --comparison-dir results/comparisons/phase0
 ```
 
-With a baseline:
+With the checked FabricPC baseline:
 
 ```bash
 /home/ni/repos/fpc/py3/bin/python -m relaleap_fabricpc.experiments.check_artifacts \

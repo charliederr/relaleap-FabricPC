@@ -1,4 +1,4 @@
-"""Run and compare Phase 0 smoke configurations."""
+"""Compare Phase 0 FabricPC experiment runs from their standard artifacts."""
 
 from __future__ import annotations
 
@@ -12,14 +12,14 @@ from typing import Any
 from relaleap_fabricpc.experiments.run import run
 
 
-DEFAULT_CONFIGS = [
+DEFAULT_CONFIGS = (
     Path("configs/char_smoke.yaml"),
     Path("configs/char_smoke_pc.yaml"),
     Path("configs/char_smoke_hep.yaml"),
-]
+)
 DEFAULT_HEP_MAX_LOGIT_DELTA = 0.1
 DEFAULT_HEP_MIN_LOSS_IMPROVEMENT = 0.0
-BASELINE_SCHEMA_VERSION = 1
+BASELINE_SCHEMA_VERSION = 3
 REQUIRED_ARTIFACT_INVARIANTS = ("summary_json", "metrics_csv", "notes_md")
 
 
@@ -30,6 +30,8 @@ def run_comparison(
     hep_max_logit_delta: float = DEFAULT_HEP_MAX_LOGIT_DELTA,
     hep_min_loss_improvement: float = DEFAULT_HEP_MIN_LOSS_IMPROVEMENT,
 ) -> dict[str, Any]:
+    """Run configs into sibling directories and write a compact comparison."""
+
     if len(config_paths) < 2:
         raise ValueError("comparison requires at least two config paths")
     if hep_max_logit_delta < 0.0:
@@ -80,6 +82,8 @@ def run_comparison(
 
 
 def write_comparison_baseline(path: Path, comparison: dict[str, Any]) -> dict[str, Any]:
+    """Write a compact, stable baseline extracted from a comparison artifact."""
+
     baseline = _comparison_baseline(comparison)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
@@ -94,8 +98,14 @@ def compare_to_baseline(
     baseline_path: Path,
     out_path: Path,
 ) -> dict[str, Any]:
+    """Compare current stable Phase 0 fields against a saved baseline."""
+
     reference = json.loads(baseline_path.read_text(encoding="utf-8"))
-    result = compare_comparison_to_baseline(comparison, reference, baseline_path=baseline_path)
+    result = compare_comparison_to_baseline(
+        comparison,
+        reference,
+        baseline_path=baseline_path,
+    )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
         json.dumps(result, indent=2, sort_keys=True) + "\n",
@@ -110,13 +120,15 @@ def compare_comparison_to_baseline(
     *,
     baseline_path: Path | None = None,
 ) -> dict[str, Any]:
+    """Compare a comparison summary against an already-loaded baseline."""
+
     candidate = _comparison_baseline(comparison)
     mismatches = _baseline_mismatches(reference, candidate)
     result = {
         "status": "pass" if not mismatches else "fail",
         "mismatches": mismatches,
-        "reference": reference,
-        "candidate": candidate,
+        "reference": _baseline_comparison_fields(reference),
+        "candidate": _baseline_comparison_fields(candidate),
     }
     if baseline_path is not None:
         result["baseline_path"] = str(baseline_path)
@@ -155,7 +167,9 @@ def _comparison_baseline(comparison: dict[str, Any]) -> dict[str, Any]:
             "failed": verdict["failed_artifact_invariants"],
         },
         "hep": {
-            "best_alpha_by_loss": _baseline_hep_alpha(verdict["best_hep_alpha_by_loss"]),
+            "best_alpha_by_loss": _baseline_hep_alpha(
+                verdict["best_hep_alpha_by_loss"]
+            ),
             "acceptance": {
                 "status": acceptance["status"],
                 "max_logit_delta_from_ordinary": acceptance[
@@ -164,10 +178,15 @@ def _comparison_baseline(comparison: dict[str, Any]) -> dict[str, Any]:
                 "min_loss_improvement_from_alpha0": acceptance[
                     "min_loss_improvement_from_alpha0"
                 ],
+                "baseline_alpha0": _baseline_hep_alpha(
+                    acceptance["baseline_alpha0"]
+                ),
+                "accepted_alpha": _baseline_hep_alpha(
+                    acceptance["accepted_alpha"],
+                    include_improvement=True,
+                ),
                 "candidate_count": acceptance["candidate_count"],
                 "rejected_count": acceptance["rejected_count"],
-                "baseline_alpha0": _baseline_hep_alpha(acceptance["baseline_alpha0"]),
-                "accepted_alpha": _baseline_hep_alpha(acceptance["accepted_alpha"]),
             },
         },
     }
@@ -176,24 +195,143 @@ def _comparison_baseline(comparison: dict[str, Any]) -> dict[str, Any]:
 def _baseline_mismatches(
     reference: dict[str, Any],
     candidate: dict[str, Any],
-    *,
-    prefix: str = "baseline",
 ) -> list[dict[str, Any]]:
-    mismatches: list[dict[str, Any]] = []
-    keys = sorted(set(reference) | set(candidate))
-    for key in keys:
-        field = f"{prefix}.{key}"
-        expected = reference.get(key)
-        actual = candidate.get(key)
-        if isinstance(expected, dict) and isinstance(actual, dict):
-            mismatches.extend(_baseline_mismatches(expected, actual, prefix=field))
-        elif expected != actual:
-            mismatches.append({"field": field, "expected": expected, "actual": actual})
-    return mismatches
+    if reference.get("schema_version") != candidate.get("schema_version"):
+        return [
+            {
+                "field": "schema_version",
+                "reference": reference.get("schema_version"),
+                "candidate": candidate.get("schema_version"),
+            }
+        ]
+    checks = [
+        ("comparison_status", reference["comparison_status"], candidate["comparison_status"]),
+        ("verdict_status", reference["verdict_status"], candidate["verdict_status"]),
+        ("config_paths", reference["config_paths"], candidate["config_paths"]),
+        (
+            "phase0_invariants.passed",
+            reference["phase0_invariants"]["passed"],
+            candidate["phase0_invariants"]["passed"],
+        ),
+        (
+            "phase0_invariants.count",
+            reference["phase0_invariants"]["count"],
+            candidate["phase0_invariants"]["count"],
+        ),
+        (
+            "phase0_invariants.failed",
+            reference["phase0_invariants"]["failed"],
+            candidate["phase0_invariants"]["failed"],
+        ),
+        (
+            "artifact_invariants.passed",
+            reference["artifact_invariants"]["passed"],
+            candidate["artifact_invariants"]["passed"],
+        ),
+        (
+            "artifact_invariants.count",
+            reference["artifact_invariants"]["count"],
+            candidate["artifact_invariants"]["count"],
+        ),
+        (
+            "artifact_invariants.failed",
+            reference["artifact_invariants"]["failed"],
+            candidate["artifact_invariants"]["failed"],
+        ),
+        (
+            "runs.artifact_invariants",
+            _run_artifact_baseline_fields(reference),
+            _run_artifact_baseline_fields(candidate),
+        ),
+        (
+            "hep.acceptance.status",
+            reference["hep"]["acceptance"]["status"],
+            candidate["hep"]["acceptance"]["status"],
+        ),
+        (
+            "hep.acceptance.accepted_alpha.alpha",
+            _accepted_alpha_value(reference),
+            _accepted_alpha_value(candidate),
+        ),
+    ]
+    return [
+        {"field": field, "reference": expected, "candidate": actual}
+        for field, expected, actual in checks
+        if expected != actual
+    ]
+
+
+def _baseline_comparison_fields(baseline: dict[str, Any]) -> dict[str, Any]:
+    acceptance = baseline["hep"]["acceptance"]
+    return {
+        "schema_version": baseline.get("schema_version"),
+        "comparison_status": baseline["comparison_status"],
+        "verdict_status": baseline["verdict_status"],
+        "config_paths": baseline["config_paths"],
+        "phase0_invariants": baseline["phase0_invariants"],
+        "artifact_invariants": baseline.get("artifact_invariants"),
+        "run_artifact_invariants": _run_artifact_baseline_fields(baseline),
+        "accepted_hep_alpha": acceptance["accepted_alpha"],
+        "accepted_status": acceptance["status"],
+    }
+
+
+def _accepted_alpha_value(baseline: dict[str, Any]) -> float | None:
+    accepted = baseline["hep"]["acceptance"]["accepted_alpha"]
+    if accepted is None:
+        return None
+    return accepted["alpha"]
+
+
+def _baseline_hep_alpha(
+    entry: dict[str, Any] | None,
+    *,
+    include_improvement: bool = False,
+) -> dict[str, Any] | None:
+    if entry is None:
+        return None
+    baseline = {
+        "experiment_id": entry["experiment_id"],
+        "alpha": entry["alpha"],
+        "loss": entry["loss"],
+        "max_logit_delta_from_ordinary": entry["max_logit_delta_from_ordinary"],
+    }
+    if include_improvement:
+        baseline["loss_improvement_from_alpha0"] = entry[
+            "loss_improvement_from_alpha0"
+        ]
+    return baseline
+
+
+def _baseline_run_artifact_invariants(entry: dict[str, Any]) -> dict[str, Any]:
+    artifact_invariants = entry.get("artifact_invariants")
+    failed = []
+    for name in REQUIRED_ARTIFACT_INVARIANTS:
+        if (
+            not isinstance(artifact_invariants, dict)
+            or artifact_invariants.get(name) is not True
+        ):
+            failed.append(name)
+    return {
+        "count": len(REQUIRED_ARTIFACT_INVARIANTS),
+        "failed": failed,
+        "passed": not failed,
+    }
+
+
+def _run_artifact_baseline_fields(baseline: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        {
+            "experiment_id": entry["experiment_id"],
+            "config_path": entry["config_path"],
+            "artifact_invariants": entry.get("artifact_invariants"),
+        }
+        for entry in baseline["runs"]
+    ]
 
 
 def _read_metrics(path: Path) -> list[dict[str, str]]:
-    with path.open("r", encoding="utf-8", newline="") as handle:
+    with path.open(encoding="utf-8", newline="") as handle:
         return list(csv.DictReader(handle))
 
 
@@ -234,7 +372,10 @@ def _comparison_entry(
         "support_stress": phase0.get("support_stress", False),
         "support_stress_preset": phase0.get("support_stress_preset", False),
         "hep_update_clip_norm": phase0.get("hep_update_clip_norm"),
-        "hep_settling_objective": phase0.get("hep_settling_objective", "residual_adapter"),
+        "hep_settling_objective": phase0.get(
+            "hep_settling_objective",
+            "residual_adapter",
+        ),
         "support_instability": phase0.get("support_instability") or {},
         "support_audit": phase0.get("support_audit") or {},
         "hep_alpha_sweep": phase0.get("hep_alpha_sweep") or [],
@@ -260,7 +401,10 @@ def _comparison_verdict(
         for name, value in sorted(invariants.items()):
             if not value:
                 failed_invariants.append(
-                    {"experiment_id": entry["experiment_id"], "invariant": name}
+                    {
+                        "experiment_id": entry["experiment_id"],
+                        "invariant": name,
+                    }
                 )
         artifact_invariants = entry.get("artifact_invariants")
         artifact_invariant_count += len(REQUIRED_ARTIFACT_INVARIANTS)
@@ -270,7 +414,10 @@ def _comparison_verdict(
                 or artifact_invariants.get(name) is not True
             ):
                 failed_artifact_invariants.append(
-                    {"experiment_id": entry["experiment_id"], "artifact": name}
+                    {
+                        "experiment_id": entry["experiment_id"],
+                        "artifact": name,
+                    }
                 )
 
     best_hep = _best_hep_alpha(entries)
@@ -357,7 +504,9 @@ def _hep_alpha_acceptance(
             )
             candidates.append(candidate)
 
-    accepted_candidates = [candidate for candidate in candidates if candidate["accepted"]]
+    accepted_candidates = [
+        candidate for candidate in candidates if candidate["accepted"]
+    ]
     accepted_alpha = None
     if accepted_candidates:
         accepted_alpha = min(accepted_candidates, key=lambda candidate: candidate["loss"])
@@ -377,7 +526,10 @@ def _hep_alpha_acceptance(
         "rejected_count": len(candidates) - len(accepted_candidates),
         "candidates": sorted(
             candidates,
-            key=lambda candidate: (candidate["experiment_id"], candidate["alpha"]),
+            key=lambda candidate: (
+                candidate["experiment_id"],
+                candidate["alpha"],
+            ),
         ),
     }
 
@@ -407,30 +559,64 @@ def _alpha0_baseline(
 
 def _combined_rows(
     entry: dict[str, Any],
-    rows: list[dict[str, str]],
+    metric_rows: list[dict[str, str]],
 ) -> list[dict[str, Any]]:
-    combined = []
-    for row in rows:
-        enriched = dict(row)
-        enriched["run_dir"] = entry["run_dir"]
-        enriched["config_path"] = entry["config_path"]
-        combined.append(enriched)
-    return combined
+    rows = []
+    initial = entry["initial_residual_loss"]
+    for row in metric_rows:
+        residual_loss = _parse_float(row.get("residual_loss", ""))
+        loss_delta = None
+        if initial is not None and residual_loss is not None:
+            loss_delta = residual_loss - initial
+        rows.append(
+            {
+                "experiment_id": entry["experiment_id"],
+                "config_path": entry["config_path"],
+                "run_dir": entry["run_dir"],
+                "residual_objective": entry["residual_objective"],
+                "dataset": entry.get("dataset"),
+                "num_columns": entry.get("num_columns"),
+                "atoms_per_column": entry.get("atoms_per_column"),
+                "top_k": entry.get("top_k"),
+                "pinned_support": entry["pinned_support"],
+                "support_stress": entry["support_stress"],
+                "hep_update_clip_norm": entry.get("hep_update_clip_norm"),
+                "hep_settling_objective": entry.get("hep_settling_objective"),
+                "step": row.get("step", ""),
+                "phase": row.get("phase", ""),
+                "base_loss": row.get("base_loss", ""),
+                "residual_loss": row.get("residual_loss", ""),
+                "loss_delta_from_initial": _format_optional(loss_delta),
+                "hep_alpha": row.get("hep_alpha", ""),
+                "hep_loss": row.get("hep_loss", ""),
+                "max_hep_logit_delta_from_ordinary": row.get(
+                    "max_hep_logit_delta_from_ordinary", ""
+                ),
+                "hep_support_change_fraction": row.get(
+                    "hep_support_change_fraction", ""
+                ),
+                "hep_pinned_vs_repicked_logit_delta": row.get(
+                    "hep_pinned_vs_repicked_logit_delta", ""
+                ),
+                "status": row.get("status", entry["status"]),
+            }
+        )
+    return rows
 
 
 def _first_metric(rows: list[dict[str, str]], field: str) -> float | None:
     for row in rows:
-        parsed = _parse_float(row.get(field))
-        if parsed is not None:
-            return parsed
+        value = _parse_float(row.get(field, ""))
+        if value is not None:
+            return value
     return None
 
 
 def _last_metric(rows: list[dict[str, str]], field: str) -> float | None:
     for row in reversed(rows):
-        parsed = _parse_float(row.get(field))
-        if parsed is not None:
-            return parsed
+        value = _parse_float(row.get(field, ""))
+        if value is not None:
+            return value
     return None
 
 
@@ -440,110 +626,246 @@ def _parse_float(value: str | None) -> float | None:
     return float(value)
 
 
+def _format_optional(value: float | None) -> str:
+    if value is None:
+        return ""
+    return f"{value:.8f}"
+
+
 def _write_metrics(path: Path, rows: list[dict[str, Any]]) -> None:
-    if not rows:
-        path.write_text("", encoding="utf-8")
-        return
+    fieldnames = [
+        "experiment_id",
+        "config_path",
+        "run_dir",
+        "residual_objective",
+        "dataset",
+        "num_columns",
+        "atoms_per_column",
+        "top_k",
+        "pinned_support",
+        "support_stress",
+        "hep_update_clip_norm",
+        "hep_settling_objective",
+        "step",
+        "phase",
+        "base_loss",
+        "residual_loss",
+        "loss_delta_from_initial",
+        "hep_alpha",
+        "hep_loss",
+        "max_hep_logit_delta_from_ordinary",
+        "hep_support_change_fraction",
+        "hep_pinned_vs_repicked_logit_delta",
+        "status",
+    ]
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
 
 
 def _write_notes(path: Path, comparison: dict[str, Any]) -> None:
     verdict = comparison["verdict"]
+    hep_acceptance = verdict["hep_alpha_acceptance"]
     lines = [
-        "# Phase 0 Comparison",
+        "# RelaLeap Objective Comparison",
+        "",
+        "Command-driven comparison of Phase 0 residual objectives.",
         "",
         f"- Status: `{comparison['status']}`",
         f"- Verdict: `{verdict['status']}`",
-        f"- Phase 0 invariants passed: `{verdict['invariants_passed']}`",
-        f"- Artifact invariants passed: `{verdict['artifact_invariants_passed']}`",
-        f"- Best HEP alpha by loss: `{verdict['best_hep_alpha_by_loss']}`",
-        f"- HEP alpha acceptance: `{verdict['hep_alpha_acceptance']['status']}`",
+        (
+            f"- Phase 0 invariants: `{verdict['invariant_count']}` checked, "
+            f"passed `{verdict['invariants_passed']}`"
+        ),
+        (
+            f"- Artifact invariants: `{verdict['artifact_invariant_count']}` checked, "
+            f"passed `{verdict['artifact_invariants_passed']}`"
+        ),
+        f"- HEP alpha acceptance: `{hep_acceptance['status']}`",
+        f"- Loss scale note: {comparison['loss_scale_note']}",
         "",
         "## Runs",
         "",
+        (
+            "| Experiment | Objective | Pinned | Stress | Status | Initial loss | "
+            "Final loss | Delta | Ratio | HEP clip | Support change | Pinned-vs-repicked |"
+        ),
+        "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for entry in comparison["runs"]:
-        lines.append(
-            "- "
-            f"`{entry['experiment_id']}`: status `{entry['status']}`, "
-            f"objective `{entry['residual_objective']}`, "
-            f"final residual loss `{entry['final_residual_loss']}`"
+        support_instability = entry.get("support_instability") or {}
+        row_template = (
+            "| {experiment_id} | {objective} | {pinned} | {stress} | {status} | "
+            "{initial} | {final} | {delta} | {ratio} | {hep_clip} | "
+            "{support_change} | {pinned_vs_repicked} |"
         )
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-
-def _baseline_run_artifact_invariants(entry: dict[str, Any]) -> dict[str, Any]:
-    invariants = entry.get("artifact_invariants") or {}
-    failed = [
-        name
-        for name in REQUIRED_ARTIFACT_INVARIANTS
-        if invariants.get(name) is not True
+        lines.append(
+            row_template.format(
+                experiment_id=entry["experiment_id"],
+                objective=entry["residual_objective"],
+                pinned=entry.get("pinned_support"),
+                stress=entry.get("support_stress"),
+                status=entry["status"],
+                initial=_format_note_metric(entry["initial_residual_loss"]),
+                final=_format_note_metric(entry["final_residual_loss"]),
+                delta=_format_note_metric(entry["residual_loss_delta"]),
+                ratio=_format_note_metric(entry["residual_loss_ratio"]),
+                hep_clip=_format_note_metric(entry.get("hep_update_clip_norm")),
+                support_change=_format_note_metric(
+                    support_instability.get("support_change_fraction")
+                ),
+                pinned_vs_repicked=_format_note_metric(
+                    support_instability.get("pinned_vs_repicked_logit_delta")
+                ),
+            )
+        )
+    lines.extend(["", "## Artifacts", ""])
+    for entry in comparison["runs"]:
+        lines.append(f"- `{entry['experiment_id']}`: `{entry['run_dir']}`")
+    hep_entries = [
+        entry for entry in comparison["runs"] if entry.get("hep_alpha_sweep")
     ]
-    return {
-        "passed": not failed,
-        "count": len(REQUIRED_ARTIFACT_INVARIANTS),
-        "failed": failed,
-    }
+    if hep_entries:
+        lines.extend(["", "## HEP Alpha Sweeps", ""])
+        for entry in hep_entries:
+            sweep = ", ".join(
+                (
+                    f"alpha {sweep_entry['alpha']}: "
+                    f"loss {_format_note_metric(sweep_entry['loss'])}, "
+                    "delta "
+                    f"{_format_note_metric(sweep_entry['max_logit_delta_from_ordinary'])}, "
+                    "support-change "
+                    f"{_format_note_metric(sweep_entry.get('support_change_fraction', 0.0))}, "
+                    "pinned-vs-repicked "
+                    f"{_format_note_metric(sweep_entry.get('pinned_vs_repicked_logit_delta', 0.0))}"
+                )
+                for sweep_entry in entry["hep_alpha_sweep"]
+            )
+            lines.append(f"- `{entry['experiment_id']}`: {sweep}")
+    if verdict["failed_invariants"]:
+        lines.extend(["", "## Failed Invariants", ""])
+        for failed in verdict["failed_invariants"]:
+            lines.append(
+                f"- `{failed['experiment_id']}`: `{failed['invariant']}`"
+            )
+    if verdict["failed_artifact_invariants"]:
+        lines.extend(["", "## Failed Artifact Invariants", ""])
+        for failed in verdict["failed_artifact_invariants"]:
+            lines.append(
+                f"- `{failed['experiment_id']}`: `{failed['artifact']}`"
+            )
+    if verdict["best_hep_alpha_by_loss"]:
+        best = verdict["best_hep_alpha_by_loss"]
+        lines.extend(
+            [
+                "",
+                "## Verdict",
+                "",
+                (
+                    "- Best HEP alpha by loss: "
+                    f"`{best['alpha']}` in `{best['experiment_id']}` "
+                    f"with loss `{_format_note_metric(best['loss'])}` "
+                    "and ordinary-logit delta "
+                    f"`{_format_note_metric(best['max_logit_delta_from_ordinary'])}`"
+                ),
+            ]
+        )
+        accepted = hep_acceptance["accepted_alpha"]
+        lines.extend(
+            [
+                (
+                    "- HEP acceptance policy: require nonzero alpha, loss improvement "
+                    "over alpha 0 greater than "
+                    f"`{_format_note_metric(hep_acceptance['min_loss_improvement_from_alpha0'])}`, "
+                    "and ordinary-logit delta at or below "
+                    f"`{_format_note_metric(hep_acceptance['max_logit_delta_from_ordinary'])}`"
+                ),
+                (
+                    "- Accepted HEP alpha: "
+                    + (
+                        f"`{accepted['alpha']}` in `{accepted['experiment_id']}` "
+                        f"with loss improvement `{_format_note_metric(accepted['loss_improvement_from_alpha0'])}` "
+                        "and ordinary-logit delta "
+                        f"`{_format_note_metric(accepted['max_logit_delta_from_ordinary'])}`"
+                        if accepted
+                        else "`none`"
+                    )
+                ),
+            ]
+        )
+    lines.append("")
+    path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def _baseline_hep_alpha(entry: dict[str, Any] | None) -> dict[str, Any] | None:
-    if entry is None:
-        return None
-    keys = [
-        "experiment_id",
-        "alpha",
-        "loss",
-        "max_logit_delta_from_ordinary",
-        "loss_improvement_from_alpha0",
-    ]
-    return {key: entry[key] for key in keys if key in entry}
+def _format_note_metric(value: Any) -> str:
+    if value is None:
+        return ""
+    return f"{float(value):.8f}"
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run a Phase 0 comparison.")
+    parser = argparse.ArgumentParser(
+        description="Run and compare RelaLeap FabricPC experiment configs."
+    )
     parser.add_argument(
         "--config",
-        dest="configs",
         action="append",
+        dest="configs",
         type=Path,
-        help="Config path. May be passed more than once.",
+        help="Config to include. Repeat for multiple configs.",
     )
-    parser.add_argument("--out", default=Path("results/comparisons/phase0"), type=Path)
-    parser.add_argument("--baseline-out", type=Path)
-    parser.add_argument("--baseline-reference", type=Path)
+    parser.add_argument(
+        "--out",
+        default=Path("results/comparisons/phase0"),
+        type=Path,
+    )
     parser.add_argument(
         "--hep-max-logit-delta",
-        type=float,
         default=DEFAULT_HEP_MAX_LOGIT_DELTA,
+        type=float,
+        help="Maximum ordinary-logit delta allowed for accepting nonzero HEP alpha.",
     )
     parser.add_argument(
         "--hep-min-loss-improvement",
-        type=float,
         default=DEFAULT_HEP_MIN_LOSS_IMPROVEMENT,
+        type=float,
+        help="Minimum loss improvement over alpha 0 required for accepting HEP alpha.",
+    )
+    parser.add_argument(
+        "--baseline-out",
+        type=Path,
+        help="Optional path for a compact, stable Phase 0 comparison baseline JSON.",
+    )
+    parser.add_argument(
+        "--baseline-reference",
+        type=Path,
+        help=(
+            "Optional checked-in baseline to compare against. Writes "
+            "baseline_comparison.json in --out and exits nonzero on mismatch."
+        ),
     )
     args = parser.parse_args()
+    config_paths = args.configs or list(DEFAULT_CONFIGS)
     comparison = run_comparison(
-        args.configs or DEFAULT_CONFIGS,
+        config_paths,
         args.out,
         hep_max_logit_delta=args.hep_max_logit_delta,
         hep_min_loss_improvement=args.hep_min_loss_improvement,
     )
-    if args.baseline_out is not None:
+    if args.baseline_out:
         write_comparison_baseline(args.baseline_out, comparison)
-    if args.baseline_reference is not None:
-        result = compare_to_baseline(
+    baseline_comparison = None
+    if args.baseline_reference:
+        baseline_comparison = compare_to_baseline(
             comparison,
             args.baseline_reference,
             args.out / "baseline_comparison.json",
         )
-        if result["status"] != "pass":
-            print(json.dumps(comparison, indent=2, sort_keys=True))
-            raise SystemExit(1)
     print(json.dumps(comparison, indent=2, sort_keys=True))
     if comparison["status"] != "ok" or comparison["verdict"]["status"] != "pass":
+        raise SystemExit(1)
+    if baseline_comparison and baseline_comparison["status"] != "pass":
         raise SystemExit(1)
 
 

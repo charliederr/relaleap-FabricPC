@@ -1,0 +1,36 @@
+run:
+  experiment_id: char_validation_temporal_consistency_hep_temporal_clipped_objective_gate
+  seed: 1
+  max_steps: 25
+
+data:
+  dataset: tiny_shakespeare_char
+  seq_len: 64
+
+training:
+  residual_objective: supervised_ce_temporal_consistency
+  temporal_consistency_weight: 0.01
+
+model:
+  base:
+    layers: 2
+    hidden_dim: 64
+  columns:
+    num_columns: 12
+    atoms_per_column: 4
+    top_k: 1
+    insertion_sites: 1
+    support_stress: true
+    support_stress_preset: false
+
+inference:
+  pc_steps: 3
+  hep_alpha: 0.0
+  hep_alpha_sweep: "0.0,0.25,0.5,1.0"
+  hep_update_clip_norm: 0.01
+  hep_settling_objective: temporal_consistency_gradient
+
+outputs:
+  require_summary_json: true
+  require_metrics_csv: true
+  require_notes_md: true

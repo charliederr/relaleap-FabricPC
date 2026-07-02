@@ -41,14 +41,21 @@ the verdict should pass when all Phase 0 model and artifact invariants pass.
 
 - Package, configs, command modules, README, and focused tests have been added.
 - Verification passed for focused tests, the default Phase 0 comparison, and artifact checking.
-- Remaining work is final inspection and cleanup.
+- Source-compatible comparison artifacts, baseline schema v3, child artifact checks, mirrored configs, and a FabricPC baseline have been added.
+- Remaining work is to continue porting beyond Phase 0 or deepen FabricPC integration as requested.
 
 ## Follow-up Adjustment
 
 - Add a strict GPU wrapper script for user-run artifact generation.
 - Leave `results/` unignored so GPU artifacts can be committed when useful.
 
-## Current GPU Check Path
+## Completed GPU Confirmation Note
 
-- Use `scripts/run_jax_gpu_burn.sh` as the standalone GPU-use check before further Phase 0 GPU diagnosis.
-- If JAX selects CUDA and `nvidia-smi` shows sustained utilization during the burn, treat the previous Phase 0 failure as specific to the compiled model workload/cuDNN path rather than basic JAX GPU visibility.
+- The user confirmed JAX selects `gpu` and sees `CudaDevice(id=0)` in the local environment.
+- No further backend-probe work is planned; continue with RelaLeap-to-FabricPC porting and artifact verification.
+
+## Current Porting Slice
+
+- Keep the Phase 0 default comparison small and passing on CPU.
+- Use `baselines/phase0_fabricpc_comparison.json` as the checked FabricPC baseline for artifact drift checks.
+- Treat the mirrored 92 source configs as available run surfaces; validate broad config compatibility with lightweight tests rather than running every large config by default.
