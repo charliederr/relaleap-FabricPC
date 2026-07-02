@@ -1,0 +1,2 @@
+step,seed,experiment_id,phase,residual_objective,base_loss,residual_loss,zero_init_loss,residual_parameter_delta,max_zero_init_logit_delta,max_hep_alpha0_logit_delta,hep_alpha,hep_loss,max_hep_logit_delta_from_ordinary,hep_support_change_fraction,hep_pinned_vs_repicked_logit_delta,device,error,max_steps,status
+0,1,char_smoke_hep,failed,,,,,,,,,,,,,gpu,JaxRuntimeError: INTERNAL: RET_CHECK failure (external/xla/xla/service/gpu/gpu_compiler.cc:2928) dnn_support != nullptr ,10,failed

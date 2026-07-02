@@ -26,3 +26,8 @@
 - Removed the `.gitignore` file added earlier so generated `results/` artifacts can be tracked if desired.
 - Updated the README with the GPU wrapper invocation and optional output-directory argument.
 - Updated `scripts/run_phase0_gpu.sh` to unset `JAX_PLATFORMS` and set `RELALEAP_FABRICPC_JAX_AUTO=1`, so JAX chooses the backend automatically instead of preserving a stale platform value.
+
+## GPU Sanity Burn Script
+
+- Added `scripts/jax_gpu_burn.py` and `scripts/run_jax_gpu_burn.sh` for a direct 60-second JAX matmul workload that does not set `JAX_PLATFORMS` or import the Phase 0 package setup.
+- The script prints JAX backend/device selection and keeps a dense jitted matmul loop active so GPU use can be checked from a separate `nvidia-smi` process.

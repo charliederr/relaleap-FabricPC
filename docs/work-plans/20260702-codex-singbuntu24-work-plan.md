@@ -47,3 +47,8 @@ the verdict should pass when all Phase 0 model and artifact invariants pass.
 
 - Add a strict GPU wrapper script for user-run artifact generation.
 - Leave `results/` unignored so GPU artifacts can be committed when useful.
+
+## Current GPU Check Path
+
+- Use `scripts/run_jax_gpu_burn.sh` as the standalone GPU-use check before further Phase 0 GPU diagnosis.
+- If JAX selects CUDA and `nvidia-smi` shows sustained utilization during the burn, treat the previous Phase 0 failure as specific to the compiled model workload/cuDNN path rather than basic JAX GPU visibility.
