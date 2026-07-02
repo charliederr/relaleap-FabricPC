@@ -1,4 +1,4 @@
-ni@singbuntu24:~/repos/fpc$ git clone git@github.com:bgoertzel-sing/relaleap.git
+ni@singbuntu24:~/repos/fpc$ git clone  git@github.com:bgoertzel-sing/relaleap.git
 Cloning into 'relaleap'...
 remote: Enumerating objects: 8634, done.
 remote: Counting objects: 100% (89/89), done.
@@ -732,3 +732,3261 @@ ni@singbuntu24:~/repos/fpc$ /usr/bin/codex
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 • I’m creating only the downstream package directories under relaleap-FabricPC; the source and FabricPC repos stay untouched.
+
+✔ You approved codex to run mkdir -p relaleap-FabricPC/relaleap_fabricpc/experiments relaleap-FabricPC/co... this time
+
+• Ran mkdir -p relaleap-FabricPC/relaleap_fabricpc/experiments relaleap-FabricPC/configs relaleap-FabricPC/tests
+  └ (no output)
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• I’m going to add the full Phase 0 surface now: config files, a JAX/FabricPC-compatible residual node, the smoke runner, comparison/check commands, tests, and README instructions.
+
+✗ You canceled the request to run sed -n '744,769p' relaleap/relaleap/smoke.py
+
+• Explored
+  └ Read smoke.py
+
+■ Conversation interrupted - tell the model what to do differently. Something went wrong? Hit `/feedback` to report the issue.
+
+
+› Please also populate relaleap-FabricPC/docs/work-plans/20260702-codex-singbuntu24-work-log.md as you proceed with this work and create a relaleap-FabricPC/docs/work-plans/20260702-codex-singbuntu24-work-plan.md file you keep up to date with your intended path forward.
+
+
+• Understood. I’ll add and maintain those two work-plan files as part of the implementation, updating the plan as the path changes and the work log as concrete steps complete.
+
+✗ You canceled the request to run mkdir -p relaleap-FabricPC/docs/work-plans relaleap-FabricPC/relaleap_fabricp...
+
+• Ran mkdir -p relaleap-FabricPC/docs/work-plans relaleap-FabricPC/relaleap_fabricpc/experiments relaleap-FabricPC/configs relaleap-FabricPC/tests
+  └ (no output)
+
+■ Conversation interrupted - tell the model what to do differently. Something went wrong? Hit `/feedback` to report the issue.
+
+
+› the docs/work-plans directory already exists -- otherwise, please proceed
+
+
+• I’m adding the first implementation pass now. The port keeps the PyTorch source repo as reference only; the runnable Phase 0 path in relaleap-FabricPC is JAX/Optax and has its FabricPC custom node code locally.
+
+• Edited 12 files (+1752 -0)
+  └ relaleap-FabricPC/configs/char_smoke.yaml (+30 -0)
+     1 +run:
+     2 +  experiment_id: char_smoke
+     3 +  seed: 1
+     4 +  max_steps: 10
+     5 +
+     6 +data:
+     7 +  dataset: tiny_shakespeare_char
+     8 +  seq_len: 32
+     9 +
+    10 +training:
+    11 +  residual_objective: supervised_ce
+    12 +
+    13 +model:
+    14 +  base:
+    15 +    layers: 2
+    16 +    hidden_dim: 32
+    17 +  columns:
+    18 +    num_columns: 8
+    19 +    atoms_per_column: 4
+    20 +    top_k: 1
+    21 +    insertion_sites: 1
+    22 +
+    23 +inference:
+    24 +  pc_steps: 1
+    25 +  hep_alpha: 0.0
+    26 +
+    27 +outputs:
+    28 +  require_summary_json: true
+    29 +  require_metrics_csv: true
+    30 +  require_notes_md: true
+
+  └ relaleap-FabricPC/configs/char_smoke_hep.yaml (+31 -0)
+     1 +run:
+     2 +  experiment_id: char_smoke_hep
+     3 +  seed: 1
+     4 +  max_steps: 10
+     5 +
+     6 +data:
+     7 +  dataset: tiny_shakespeare_char
+     8 +  seq_len: 32
+     9 +
+    10 +training:
+    11 +  residual_objective: supervised_ce
+    12 +
+    13 +model:
+    14 +  base:
+    15 +    layers: 2
+    16 +    hidden_dim: 32
+    17 +  columns:
+    18 +    num_columns: 8
+    19 +    atoms_per_column: 4
+    20 +    top_k: 1
+    21 +    insertion_sites: 1
+    22 +
+    23 +inference:
+    24 +  pc_steps: 2
+    25 +  hep_alpha: 0.0
+    26 +  hep_alpha_sweep: "0.0,0.25,0.5,1.0"
+    27 +
+    28 +outputs:
+    29 +  require_summary_json: true
+    30 +  require_metrics_csv: true
+    31 +  require_notes_md: true
+
+  └ relaleap-FabricPC/configs/char_smoke_pc.yaml (+30 -0)
+     1 +run:
+     2 +  experiment_id: char_smoke_pc
+     3 +  seed: 1
+     4 +  max_steps: 10
+     5 +
+     6 +data:
+     7 +  dataset: tiny_shakespeare_char
+     8 +  seq_len: 32
+     9 +
+    10 +training:
+    11 +  residual_objective: pc_logit_mse
+    12 +
+    13 +model:
+    14 +  base:
+    15 +    layers: 2
+    16 +    hidden_dim: 32
+    17 +  columns:
+    18 +    num_columns: 8
+    19 +    atoms_per_column: 4
+    20 +    top_k: 1
+    21 +    insertion_sites: 1
+    22 +
+    23 +inference:
+    24 +  pc_steps: 1
+    25 +  hep_alpha: 0.0
+    26 +
+    27 +outputs:
+    28 +  require_summary_json: true
+    29 +  require_metrics_csv: true
+    30 +  require_notes_md: true
+
+  └ relaleap-FabricPC/configs/char_smoke_pinned_hep.yaml (+32 -0)
+     1 +run:
+     2 +  experiment_id: char_smoke_pinned_hep
+     3 +  seed: 1
+     4 +  max_steps: 10
+     5 +
+     6 +data:
+     7 +  dataset: tiny_shakespeare_char
+     8 +  seq_len: 32
+     9 +
+    10 +training:
+    11 +  residual_objective: supervised_ce
+    12 +
+    13 +model:
+    14 +  base:
+    15 +    layers: 2
+    16 +    hidden_dim: 32
+    17 +  columns:
+    18 +    num_columns: 8
+    19 +    atoms_per_column: 4
+    20 +    top_k: 1
+    21 +    insertion_sites: 1
+    22 +    pinned_support: true
+    23 +
+    24 +inference:
+    25 +  pc_steps: 2
+    26 +  hep_alpha: 0.0
+    27 +  hep_alpha_sweep: "0.0,0.25,0.5,1.0"
+    28 +
+    29 +outputs:
+    30 +  require_summary_json: true
+    31 +  require_metrics_csv: true
+    32 +  require_notes_md: true
+
+  └ relaleap-FabricPC/docs/work-plans/20260702-codex-singbuntu24-work-log.md (+14 -0)
+     1 +# 2026-07-02 Codex Singbuntu24 Work Log
+     2 +
+     3 +## Log
+     4 +
+     5 +- Read the relevant project instructions and confirmed the working boundary:
+     6 +  all implementation belongs in `relaleap-FabricPC`, while `FabricPC` remains
+     7 +  read-only unless explicit permission is granted later.
+     8 +- Inspected `relaleap`, `columnarCL-fabricPC-experiments`, and `FabricPC`.
+     9 +  Identified the Phase 0 port surface as the smoke model, run command,
+    10 +  comparison command, artifact checker, and checked configs.
+    11 +- Confirmed `/home/ni/repos/fpc/py3/bin/python` resolves `fabricpc` from
+    12 +  `/home/ni/repos/fpc/FabricPC/fabricpc/__init__.py`.
+    13 +- Started the downstream Phase 0 port by adding package, config, test, and
+    14 +  documentation files under `relaleap-FabricPC`.
+
+  └ relaleap-FabricPC/docs/work-plans/20260702-codex-singbuntu24-work-plan.md (+37 -0)
+     1 +# 2026-07-02 Codex Singbuntu24 Work Plan
+     2 +
+     3 +## Objective
+     4 +
+     5 +Port the RelaLeap Phase 0 harness into `relaleap-FabricPC` so it runs against
+     6 +the local `FabricPC` checkout without modifying `FabricPC`.
+     7 +
+     8 +## Current Plan
+     9 +
+    10 +1. Create an installable `relaleap_fabricpc` package in `relaleap-FabricPC`.
+    11 +2. Add downstream FabricPC-compatible residual-column node code in this repo.
+    12 +3. Port the Phase 0 smoke model and invariants to JAX/Optax.
+    13 +4. Port the config-driven run command, comparison command, and artifact checker.
+    14 +5. Add Phase 0 configs equivalent to the source `relaleap` smoke configs.
+    15 +6. Add focused tests for imports, FabricPC resolution, residual invariants,
+    16 +   runner artifacts, and comparison verdicts.
+    17 +7. Update `README.md` with setup, run, compare, and verification instructions.
+    18 +8. Run tests and a smoke command using `/home/ni/repos/fpc/py3/bin/python`.
+    19 +
+    20 +## Boundaries
+    21 +
+    22 +- Do not edit `/home/ni/repos/fpc/FabricPC`.
+    23 +- Do not edit `/home/ni/repos/fpc/relaleap`.
+    24 +- Do not install Python packages. If a dependency is missing, ask the user.
+    25 +- Keep custom JAX/FabricPC support code inside `relaleap-FabricPC`.
+    26 +
+    27 +## Intended First Gate
+    28 +
+    29 +The first usable gate is:
+    30 +
+    31 +```bash
+    32 +/home/ni/repos/fpc/py3/bin/python -m relaleap_fabricpc.experiments.compare \
+    33 +  --out results/comparisons/phase0
+    34 +```
+    35 +
+    36 +The comparison should write `summary.json`, `metrics.csv`, and `notes.md`, and
+    37 +the verdict should pass when all Phase 0 model and artifact invariants pass.
+
+  └ relaleap-FabricPC/pyproject.toml (+44 -0)
+     1 +[build-system]
+     2 +requires = ["setuptools>=61.0"]
+     3 +build-backend = "setuptools.build_meta"
+     4 +
+     5 +[project]
+     6 +name = "relaleap-fabricpc"
+     7 +version = "0.1.0"
+     8 +description = "RelaLeap Phase 0 experiments ported to JAX and FabricPC."
+     9 +readme = "README.md"
+    10 +requires-python = ">=3.10"
+    11 +authors = [
+    12 +    {name = "RelaLeap FabricPC Authors"}
+    13 +]
+    14 +classifiers = [
+    15 +    "Development Status :: 2 - Pre-Alpha",
+    16 +    "Intended Audience :: Science/Research",
+    17 +    "Programming Language :: Python :: 3",
+    18 +    "Programming Language :: Python :: 3.10",
+    19 +    "Programming Language :: Python :: 3.11",
+    20 +    "Programming Language :: Python :: 3.12",
+    21 +    "Private :: Do Not Upload",
+    22 +]
+    23 +dependencies = [
+    24 +    "fabricpc",
+    25 +    "jax",
+    26 +    "jaxlib",
+    27 +    "numpy>=1.24.0",
+    28 +    "optax>=0.1.7",
+    29 +    "pyyaml",
+    30 +]
+    31 +
+    32 +[project.optional-dependencies]
+    33 +dev = [
+    34 +    "pytest",
+    35 +]
+    36 +
+    37 +[tool.setuptools.packages.find]
+    38 +where = ["."]
+    39 +include = ["relaleap_fabricpc*"]
+    40 +
+    41 +[tool.pytest.ini_options]
+    42 +testpaths = ["tests"]
+    43 +python_files = ["test_*.py"]
+    44 +python_functions = ["test_*"]
+
+  └ relaleap-FabricPC/relaleap_fabricpc/__init__.py (+3 -0)
+    1 +"""RelaLeap Phase 0 experiments built on JAX and FabricPC."""
+    2 +
+    3 +__version__ = "0.1.0"
+
+  └ relaleap-FabricPC/relaleap_fabricpc/data.py (+85 -0)
+     1 +"""Small deterministic data builders for local Phase 0 runs."""
+     2 +
+     3 +from __future__ import annotations
+     4 +
+     5 +import re
+     6 +from typing import Any
+     7 +
+     8 +import jax.numpy as jnp
+     9 +
+    10 +
+    11 +TINY_SHAKESPEARE_EXCERPT = """
+    12 +First Citizen:
+    13 +Before we proceed any further, hear me speak.
+    14 +
+    15 +All:
+    16 +Speak, speak.
+    17 +
+    18 +First Citizen:
+    19 +You are all resolved rather to die than to famish?
+    20 +
+    21 +All:
+    22 +Resolved. resolved.
+    23 +""".strip()
+    24 +
+    25 +TINY_TOKENIZED_EXCERPT = """
+    26 +the residual learner observes tokens across a compact language stream .
+    27 +temporal consistency compares each prediction with the following position .
+    28 +entropy settling is label free but may chase overconfident local choices .
+    29 +guided settling uses labels and remains an oracle for diagnostics only .
+    30 +support stress changes sparse column choices during repeated settling .
+    31 +the promotion gate asks for evidence beyond character level smoke runs .
+    32 +""".strip()
+    33 +
+    34 +
+    35 +def build_batch(dataset: str, seq_len: int, batch_size: int) -> tuple[Any, Any, int]:
+    36 +    """Build a deterministic local batch with integer inputs and targets."""
+    37 +
+    38 +    if dataset == "tiny_shakespeare_char":
+    39 +        return _build_char_batch(seq_len=seq_len, batch_size=batch_size)
+    40 +    if dataset == "tiny_shakespeare_word":
+    41 +        return _build_word_batch(seq_len=seq_len, batch_size=batch_size)
+    42 +    raise ValueError(
+    43 +        "data.dataset must be one of: tiny_shakespeare_char, tiny_shakespeare_word"
+    44 +    )
+    45 +
+    46 +
+    47 +def _starts(length: int, seq_len: int, batch_size: int) -> list[int]:
+    48 +    if seq_len < 2:
+    49 +        raise ValueError("seq_len must be at least 2")
+    50 +    last = length - seq_len - 2
+    51 +    if last < 0:
+    52 +        raise ValueError("source text is too short for the configured seq_len")
+    53 +    if batch_size == 1:
+    54 +        return [0]
+    55 +    return [round(i * last / (batch_size - 1)) for i in range(batch_size)]
+    56 +
+    57 +
+    58 +def _build_char_batch(seq_len: int, batch_size: int) -> tuple[Any, Any, int]:
+    59 +    text = (TINY_SHAKESPEARE_EXCERPT + "\n") * 16
+    60 +    vocab = sorted(set(text))
+    61 +    char_to_id = {char: index for index, char in enumerate(vocab)}
+    62 +    encoded = jnp.array([char_to_id[char] for char in text], dtype=jnp.int32)
+    63 +
+    64 +    rows = []
+    65 +    targets = []
+    66 +    for start in _starts(len(encoded), seq_len, batch_size):
+    67 +        rows.append(encoded[start : start + seq_len])
+    68 +        targets.append(encoded[start + 1 : start + seq_len + 1])
+    69 +    return jnp.stack(rows), jnp.stack(targets), len(vocab)
+    70 +
+    71 +
+    72 +def _build_word_batch(seq_len: int, batch_size: int) -> tuple[Any, Any, int]:
+    73 +    tokens = re.findall(r"[a-z]+|[.,]", TINY_TOKENIZED_EXCERPT.lower())
+    74 +    repeats = max(8, (seq_len * batch_size * 2) // len(tokens) + 2)
+    75 +    token_stream = tokens * repeats
+    76 +    vocab = sorted(set(token_stream))
+    77 +    token_to_id = {token: index for index, token in enumerate(vocab)}
+    78 +    encoded = jnp.array([token_to_id[token] for token in token_stream], dtype=jnp.int32)
+    79 +
+    80 +    rows = []
+    81 +    targets = []
+    82 +    for start in _starts(len(encoded), seq_len, batch_size):
+    83 +        rows.append(encoded[start : start + seq_len])
+    84 +        targets.append(encoded[start + 1 : start + seq_len + 1])
+    85 +    return jnp.stack(rows), jnp.stack(targets), len(vocab)
+
+  └ relaleap-FabricPC/relaleap_fabricpc/experiments/__init__.py (+1 -0)
+    1 +"""Command modules for RelaLeap FabricPC experiments."""
+
+  └ relaleap-FabricPC/relaleap_fabricpc/fabricpc_nodes.py (+263 -0)
+      1 +"""Downstream FabricPC node implementations used by the Phase 0 port."""
+      2 +
+      3 +from __future__ import annotations
+      4 +
+      5 +from typing import Any, Dict, Optional, Tuple
+      6 +
+      7 +import jax
+      8 +import jax.numpy as jnp
+      9 +
+     10 +from fabricpc.core.activations import IdentityActivation
+     11 +from fabricpc.core.energy import GaussianEnergy
+     12 +from fabricpc.core.initializers import InitializerBase, NormalInitializer
+     13 +from fabricpc.core.types import NodeInfo, NodeParams, NodeState
+     14 +from fabricpc.nodes.base import NodeBase, SlotSpec
+     15 +
+     16 +
+     17 +SUPPORT_ROUTER_CHOICES = {"linear", "contextual_mlp", "contextual_mlp_causal"}
+     18 +
+     19 +
+     20 +def layer_norm_last(x: jnp.ndarray, gamma: jnp.ndarray, beta: jnp.ndarray) -> jnp.ndarray:
+     21 +    mean = jnp.mean(x, axis=-1, keepdims=True)
+     22 +    var = jnp.mean(jnp.square(x - mean), axis=-1, keepdims=True)
+     23 +    return (x - mean) * jax.lax.rsqrt(var + 1e-5) * gamma + beta
+     24 +
+     25 +
+     26 +def gelu(x: jnp.ndarray) -> jnp.ndarray:
+     27 +    return 0.5 * x * (
+     28 +        1.0 + jnp.tanh(jnp.sqrt(jnp.array(2.0 / jnp.pi)) * (x + 0.044715 * x**3))
+     29 +    )
+     30 +
+     31 +
+     32 +def init_residual_params(
+     33 +    key: jax.Array,
+     34 +    *,
+     35 +    hidden_dim: int,
+     36 +    num_columns: int,
+     37 +    atoms_per_column: int,
+     38 +    support_router: str,
+     39 +    contextual_router_hidden_dim: int,
+     40 +) -> NodeParams:
+     41 +    """Initialize sparse residual-column parameters."""
+     42 +
+     43 +    if support_router not in SUPPORT_ROUTER_CHOICES:
+     44 +        raise ValueError(
+     45 +            "support_router must be one of: linear, contextual_mlp, contextual_mlp_causal"
+     46 +        )
+     47 +    if num_columns < 1:
+     48 +        raise ValueError("num_columns must be positive")
+     49 +    if atoms_per_column < 1:
+     50 +        raise ValueError("atoms_per_column must be positive")
+     51 +    if contextual_router_hidden_dim < 1:
+     52 +        raise ValueError("contextual_router_hidden_dim must be positive")
+     53 +
+     54 +    feature_dim = hidden_dim * 5 + 3
+     55 +    key1, key2 = jax.random.split(key)
+     56 +    weights = {
+     57 +        "column_score_w": jnp.zeros((hidden_dim, num_columns), dtype=jnp.float32),
+     58 +        "context_ln_gamma": jnp.ones((feature_dim,), dtype=jnp.float32),
+     59 +        "context_w1": jax.random.normal(
+     60 +            key1, (feature_dim, contextual_router_hidden_dim), dtype=jnp.float32
+     61 +        )
+     62 +        * jnp.float32(0.02),
+     63 +        "context_w2": jax.random.normal(
+     64 +            key2, (contextual_router_hidden_dim, num_columns), dtype=jnp.float32
+     65 +        )
+     66 +        * jnp.float32(0.02),
+     67 +        "atom_logits": jnp.zeros(
+     68 +            (num_columns, atoms_per_column), dtype=jnp.float32
+     69 +        ),
+     70 +        "atom_values": jnp.zeros(
+     71 +            (num_columns, atoms_per_column, hidden_dim), dtype=jnp.float32
+     72 +        ),
+     73 +    }
+     74 +    biases = {
+     75 +        "context_ln_beta": jnp.zeros((feature_dim,), dtype=jnp.float32),
+     76 +        "context_b1": jnp.zeros(
+     77 +            (contextual_router_hidden_dim,), dtype=jnp.float32
+     78 +        ),
+     79 +    }
+     80 +    return NodeParams(weights=weights, biases=biases)
+     81 +
+     82 +
+     83 +def contextual_features(hidden: jnp.ndarray, support_router: str) -> jnp.ndarray:
+     84 +    current = hidden
+     85 +    previous = jnp.concatenate([current[:, :1, :], current[:, :-1, :]], axis=1)
+     86 +    next_hidden = jnp.concatenate([current[:, 1:, :], current[:, -1:, :]], axis=1)
+     87 +    seq_len = current.shape[1]
+     88 +    if seq_len <= 1:
+     89 +        normalized_position = jnp.zeros(
+     90 +            (current.shape[0], seq_len, 1), dtype=current.dtype
+     91 +        )
+     92 +    else:
+     93 +        normalized_position = jnp.linspace(
+     94 +            0.0, 1.0, seq_len, dtype=current.dtype
+     95 +        ).reshape(1, seq_len, 1)
+     96 +        normalized_position = jnp.broadcast_to(
+     97 +            normalized_position, (current.shape[0], seq_len, 1)
+     98 +        )
+     99 +    angle = normalized_position * (2.0 * jnp.pi)
+    100 +    if support_router == "contextual_mlp_causal":
+    101 +        next_hidden = jnp.zeros_like(current)
+    102 +        next_delta = jnp.zeros_like(current)
+    103 +    else:
+    104 +        next_delta = next_hidden - current
+    105 +    return jnp.concatenate(
+    106 +        [
+    107 +            current,
+    108 +            previous,
+    109 +            next_hidden,
+    110 +            current - previous,
+    111 +            next_delta,
+    112 +            normalized_position,
+    113 +            jnp.sin(angle),
+    114 +            jnp.cos(angle),
+    115 +        ],
+    116 +        axis=-1,
+    117 +    )
+    118 +
+    119 +
+    120 +def score_columns(
+    121 +    params: NodeParams,
+    122 +    hidden: jnp.ndarray,
+    123 +    *,
+    124 +    support_router: str,
+    125 +) -> jnp.ndarray:
+    126 +    if support_router in {"contextual_mlp", "contextual_mlp_causal"}:
+    127 +        features = contextual_features(hidden, support_router)
+    128 +        normalized = layer_norm_last(
+    129 +            features,
+    130 +            params.weights["context_ln_gamma"],
+    131 +            params.biases["context_ln_beta"],
+    132 +        )
+    133 +        h = gelu(jnp.matmul(normalized, params.weights["context_w1"]) + params.biases["context_b1"])
+    134 +        return jnp.matmul(h, params.weights["context_w2"])
+    135 +    return jnp.matmul(hidden, params.weights["column_score_w"])
+    136 +
+    137 +
+    138 +def residual_forward(
+    139 +    params: NodeParams,
+    140 +    hidden: jnp.ndarray,
+    141 +    *,
+    142 +    num_columns: int,
+    143 +    top_k: int,
+    144 +    support_router: str,
+    145 +    support_indices: jnp.ndarray | None = None,
+    146 +) -> tuple[jnp.ndarray, jnp.ndarray]:
+    147 +    """Apply sparse residual columns and return output plus selected support."""
+    148 +
+    149 +    if top_k < 1 or top_k > num_columns:
+    150 +        raise ValueError("top_k must be between 1 and num_columns")
+    151 +    scores = score_columns(params, hidden, support_router=support_router)
+    152 +    tie_breaker = (
+    153 +        jnp.arange(num_columns, 0, -1, dtype=hidden.dtype).reshape(1, 1, num_columns)
+    154 +        * jnp.asarray(1e-6, dtype=hidden.dtype)
+    155 +    )
+    156 +    scores = scores + tie_breaker
+    157 +    if support_indices is None:
+    158 +        top_values, top_indices = jax.lax.top_k(scores, top_k)
+    159 +    else:
+    160 +        top_indices = support_indices
+    161 +        top_values = jnp.take_along_axis(scores, top_indices, axis=-1)
+    162 +
+    163 +    column_weights = jax.nn.softmax(top_values, axis=-1)
+    164 +    atom_weights = jax.nn.softmax(params.weights["atom_logits"], axis=-1)
+    165 +    column_values = jnp.einsum("ca,cah->ch", atom_weights, params.weights["atom_values"])
+    166 +    selected_values = column_values[top_indices]
+    167 +    residual = jnp.einsum("bsk,bskh->bsh", column_weights, selected_values)
+    168 +    return hidden + residual, top_indices
+    169 +
+    170 +
+    171 +class ResidualColumnsNode(NodeBase):
+    172 +    """FabricPC node for zero-initialized sparse residual columns."""
+    173 +
+    174 +    def __init__(
+    175 +        self,
+    176 +        shape: Tuple[int, ...],
+    177 +        name: str,
+    178 +        num_columns: int,
+    179 +        atoms_per_column: int,
+    180 +        top_k: int,
+    181 +        support_router: str = "linear",
+    182 +        contextual_router_hidden_dim: int | None = None,
+    183 +        latent_init=NormalInitializer(std=0.01),
+    184 +        weight_init=NormalInitializer(std=0.01),
+    185 +        activation=IdentityActivation(),
+    186 +        energy=GaussianEnergy(),
+    187 +        **kwargs: Any,
+    188 +    ) -> None:
+    189 +        if len(shape) != 2:
+    190 +            raise ValueError("ResidualColumnsNode shape must be (seq_len, hidden_dim)")
+    191 +        if top_k < 1 or top_k > num_columns:
+    192 +            raise ValueError("top_k must be between 1 and num_columns")
+    193 +        if support_router not in SUPPORT_ROUTER_CHOICES:
+    194 +            raise ValueError(
+    195 +                "support_router must be one of: linear, contextual_mlp, contextual_mlp_causal"
+    196 +            )
+    197 +        hidden_dim = int(shape[-1])
+    198 +        if contextual_router_hidden_dim is None:
+    199 +            contextual_router_hidden_dim = hidden_dim * 2
+    200 +        super().__init__(
+    201 +            shape=shape,
+    202 +            name=name,
+    203 +            activation=activation,
+    204 +            energy=energy,
+    205 +            latent_init=latent_init,
+    206 +            weight_init=weight_init,
+    207 +            num_columns=num_columns,
+    208 +            atoms_per_column=atoms_per_column,
+    209 +            top_k=top_k,
+    210 +            support_router=support_router,
+    211 +            contextual_router_hidden_dim=contextual_router_hidden_dim,
+    212 +            **kwargs,
+    213 +        )
+    214 +        self.num_columns = num_columns
+    215 +        self.atoms_per_column = atoms_per_column
+    216 +        self.top_k = top_k
+    217 +        self.support_router = support_router
+    218 +        self.contextual_router_hidden_dim = contextual_router_hidden_dim
+    219 +
+    220 +    @staticmethod
+    221 +    def get_slots() -> Dict[str, SlotSpec]:
+    222 +        return {"in": SlotSpec(name="in", is_multi_input=False)}
+    223 +
+    224 +    @staticmethod
+    225 +    def initialize_params(
+    226 +        key: jax.Array,
+    227 +        node_shape: Tuple[int, ...],
+    228 +        input_shapes: Dict[str, Tuple[int, ...]],
+    229 +        weight_init: Optional[InitializerBase],
+    230 +        config: Dict[str, Any],
+    231 +    ) -> NodeParams:
+    232 +        return init_residual_params(
+    233 +            key,
+    234 +            hidden_dim=int(node_shape[-1]),
+    235 +            num_columns=int(config["num_columns"]),
+    236 +            atoms_per_column=int(config["atoms_per_column"]),
+    237 +            support_router=str(config.get("support_router", "linear")),
+    238 +            contextual_router_hidden_dim=int(
+    239 +                config.get("contextual_router_hidden_dim", int(node_shape[-1]) * 2)
+    240 +            ),
+    241 +        )
+    242 +
+    243 +    @staticmethod
+    244 +    def forward(
+    245 +        params: NodeParams,
+    246 +        inputs: Dict[str, jnp.ndarray],
+    247 +        state: NodeState,
+    248 +        node_info: NodeInfo,
+    249 +    ) -> tuple[jax.Array, NodeState]:
+    250 +        edge_key = next(iter(inputs))
+    251 +        hidden = inputs[edge_key]
+    252 +        config = node_info.node_config
+    253 +        z_mu, _ = residual_forward(
+    254 +            params,
+    255 +            hidden,
+    256 +            num_columns=int(config["num_columns"]),
+    257 +            top_k=int(config["top_k"]),
+    258 +            support_router=str(config.get("support_router", "linear")),
+    259 +        )
+    260 +        error = state.z_latent - z_mu
+    261 +        state = state._replace(pre_activation=z_mu, z_mu=z_mu, error=error)
+    262 +        state = node_info.node_class.energy_functional(state, node_info)
+    263 +        return jnp.sum(state.energy), state
+
+  └ relaleap-FabricPC/relaleap_fabricpc/smoke.py (+1182 -0)
+       1 +"""Phase 0 smoke machinery for the JAX/FabricPC RelaLeap port."""
+       2 +
+       3 +from __future__ import annotations
+       4 +
+       5 +from dataclasses import dataclass
+       6 +from typing import Any
+       7 +
+       8 +import jax
+       9 +import jax.numpy as jnp
+      10 +import numpy as np
+      11 +import optax
+      12 +
+      13 +from fabricpc.core.types import NodeParams
+      14 +
+      15 +from relaleap_fabricpc.data import build_batch
+      16 +from relaleap_fabricpc.fabricpc_nodes import (
+      17 +    SUPPORT_ROUTER_CHOICES,
+      18 +    gelu,
+      19 +    init_residual_params,
+      20 +    layer_norm_last,
+      21 +    residual_forward,
+      22 +    score_columns,
+      23 +)
+      24 +
+      25 +
+      26 +@dataclass(frozen=True)
+      27 +class Phase0Result:
+      28 +    """Structured result returned by the Phase 0 smoke routine."""
+      29 +
+      30 +    residual_objective: str
+      31 +    ce_anchor_weight: float
+      32 +    confidence_penalty_weight: float
+      33 +    margin_penalty_weight: float
+      34 +    target_logit_margin: float
+      35 +    label_smoothing_weight: float
+      36 +    focal_gamma: float
+      37 +    temporal_consistency_weight: float
+      38 +    dataset: str
+      39 +    vocab_size: int
+      40 +    seq_len: int
+      41 +    batch_size: int
+      42 +    num_columns: int
+      43 +    atoms_per_column: int
+      44 +    top_k: int
+      45 +    support_router: str
+      46 +    contextual_router_hidden_dim: int
+      47 +    base_loss: float
+      48 +    zero_init_loss: float
+      49 +    initial_loss: float
+      50 +    post_step_loss: float
+      51 +    training_steps: int
+      52 +    metric_rows: list[dict[str, float | int | str]]
+      53 +    residual_parameter_delta: float
+      54 +    max_zero_init_logit_delta: float
+      55 +    max_hep_alpha0_logit_delta: float
+      56 +    pinned_support: bool
+      57 +    support_stress: bool
+      58 +    support_stress_preset: bool
+      59 +    support_instability: dict[str, float | int | bool | None]
+      60 +    support_audit: dict[str, Any]
+      61 +    hep_update_clip_norm: float | None
+      62 +    hep_settling_objective: str
+      63 +    hep_alpha_sweep: list[dict[str, float]]
+      64 +    invariants: dict[str, bool]
+      65 +
+      66 +    def to_summary(self) -> dict[str, Any]:
+      67 +        return {
+      68 +            "residual_objective": self.residual_objective,
+      69 +            "ce_anchor_weight": self.ce_anchor_weight,
+      70 +            "confidence_penalty_weight": self.confidence_penalty_weight,
+      71 +            "margin_penalty_weight": self.margin_penalty_weight,
+      72 +            "target_logit_margin": self.target_logit_margin,
+      73 +            "label_smoothing_weight": self.label_smoothing_weight,
+      74 +            "focal_gamma": self.focal_gamma,
+      75 +            "temporal_consistency_weight": self.temporal_consistency_weight,
+      76 +            "dataset": self.dataset,
+      77 +            "vocab_size": self.vocab_size,
+      78 +            "seq_len": self.seq_len,
+      79 +            "batch_size": self.batch_size,
+      80 +            "num_columns": self.num_columns,
+      81 +            "atoms_per_column": self.atoms_per_column,
+      82 +            "top_k": self.top_k,
+      83 +            "support_router": self.support_router,
+      84 +            "contextual_router_hidden_dim": self.contextual_router_hidden_dim,
+      85 +            "base_loss": self.base_loss,
+      86 +            "zero_init_loss": self.zero_init_loss,
+      87 +            "initial_loss": self.initial_loss,
+      88 +            "post_step_loss": self.post_step_loss,
+      89 +            "training_steps": self.training_steps,
+      90 +            "residual_parameter_delta": self.residual_parameter_delta,
+      91 +            "max_zero_init_logit_delta": self.max_zero_init_logit_delta,
+      92 +            "max_hep_alpha0_logit_delta": self.max_hep_alpha0_logit_delta,
+      93 +            "pinned_support": self.pinned_support,
+      94 +            "support_stress": self.support_stress,
+      95 +            "support_stress_preset": self.support_stress_preset,
+      96 +            "support_instability": self.support_instability,
+      97 +            "support_audit": self.support_audit,
+      98 +            "hep_update_clip_norm": self.hep_update_clip_norm,
+      99 +            "hep_settling_objective": self.hep_settling_objective,
+     100 +            "hep_alpha_sweep": self.hep_alpha_sweep,
+     101 +            "invariants": self.invariants,
+     102 +        }
+     103 +
+     104 +    def to_metric_rows(self) -> list[dict[str, float | int | str]]:
+     105 +        return self.metric_rows
+     106 +
+     107 +
+     108 +def run_phase0_smoke(config: dict[str, Any]) -> Phase0Result:
+     109 +    """Run local Phase 0 invariants against a tiny JAX sequence model."""
+     110 +
+     111 +    run_cfg = config.get("run", {})
+     112 +    data_cfg = config.get("data", {})
+     113 +    model_cfg = config.get("model", {})
+     114 +    base_cfg = model_cfg.get("base", {})
+     115 +    column_cfg = model_cfg.get("columns", {})
+     116 +    inference_cfg = config.get("inference", {})
+     117 +    training_cfg = config.get("training", {})
+     118 +
+     119 +    seed = int(run_cfg.get("seed", 1))
+     120 +    max_steps = int(run_cfg.get("max_steps", 10))
+     121 +    learning_rate = float(run_cfg.get("learning_rate", 1e-2))
+     122 +    residual_objective = str(
+     123 +        training_cfg.get(
+     124 +            "residual_objective",
+     125 +            run_cfg.get("residual_objective", "supervised_ce"),
+     126 +        )
+     127 +    )
+     128 +    ce_anchor_weight = float(training_cfg.get("ce_anchor_weight", 0.1))
+     129 +    confidence_penalty_weight = float(training_cfg.get("confidence_penalty_weight", 0.01))
+     130 +    margin_penalty_weight = float(training_cfg.get("margin_penalty_weight", 0.01))
+     131 +    target_logit_margin = float(training_cfg.get("target_logit_margin", 0.25))
+     132 +    label_smoothing_weight = float(training_cfg.get("label_smoothing_weight", 0.05))
+     133 +    focal_gamma = float(training_cfg.get("focal_gamma", 2.0))
+     134 +    temporal_consistency_weight = float(
+     135 +        training_cfg.get("temporal_consistency_weight", 0.01)
+     136 +    )
+     137 +    dataset = str(data_cfg.get("dataset", "tiny_shakespeare_char"))
+     138 +    seq_len = int(data_cfg.get("seq_len", 32))
+     139 +    hidden_dim = int(base_cfg.get("hidden_dim", 32))
+     140 +    layers = int(base_cfg.get("layers", 2))
+     141 +    num_columns = int(column_cfg.get("num_columns", 8))
+     142 +    atoms_per_column = int(column_cfg.get("atoms_per_column", 4))
+     143 +    top_k = int(column_cfg.get("top_k", 1))
+     144 +    pinned_support = bool(column_cfg.get("pinned_support", False))
+     145 +    support_stress = bool(column_cfg.get("support_stress", False))
+     146 +    support_stress_preset = support_stress and bool(
+     147 +        column_cfg.get("support_stress_preset", True)
+     148 +    )
+     149 +    support_router = str(column_cfg.get("support_router", "linear"))
+     150 +    contextual_router_hidden_dim = int(
+     151 +        column_cfg.get("contextual_router_hidden_dim", hidden_dim * 2)
+     152 +    )
+     153 +    pc_steps = int(inference_cfg.get("pc_steps", 1))
+     154 +    hep_alpha = float(inference_cfg.get("hep_alpha", 0.0))
+     155 +    hep_update_clip_norm = _parse_optional_float(
+     156 +        inference_cfg.get("hep_update_clip_norm")
+     157 +    )
+     158 +    hep_settling_objective = str(
+     159 +        inference_cfg.get("hep_settling_objective", "residual_adapter")
+     160 +    )
+     161 +    hep_alpha_sweep = _parse_hep_alpha_sweep(inference_cfg, fallback_alpha=hep_alpha)
+     162 +
+     163 +    _validate_phase0_config(
+     164 +        max_steps=max_steps,
+     165 +        pc_steps=pc_steps,
+     166 +        hep_update_clip_norm=hep_update_clip_norm,
+     167 +        ce_anchor_weight=ce_anchor_weight,
+     168 +        confidence_penalty_weight=confidence_penalty_weight,
+     169 +        margin_penalty_weight=margin_penalty_weight,
+     170 +        target_logit_margin=target_logit_margin,
+     171 +        label_smoothing_weight=label_smoothing_weight,
+     172 +        focal_gamma=focal_gamma,
+     173 +        temporal_consistency_weight=temporal_consistency_weight,
+     174 +        residual_objective=residual_objective,
+     175 +        hep_settling_objective=hep_settling_objective,
+     176 +        support_router=support_router,
+     177 +        contextual_router_hidden_dim=contextual_router_hidden_dim,
+     178 +        hep_alpha_sweep=hep_alpha_sweep,
+     179 +    )
+     180 +
+     181 +    inputs, targets, vocab_size = build_batch(
+     182 +        dataset=dataset,
+     183 +        seq_len=seq_len,
+     184 +        batch_size=4,
+     185 +    )
+     186 +    master_key = jax.random.PRNGKey(seed)
+     187 +    base_key, residual_key = jax.random.split(master_key)
+     188 +    base_params = _init_base_params(
+     189 +        base_key,
+     190 +        vocab_size=vocab_size,
+     191 +        seq_len=seq_len,
+     192 +        hidden_dim=hidden_dim,
+     193 +        layers=layers,
+     194 +    )
+     195 +    residual_params = init_residual_params(
+     196 +        residual_key,
+     197 +        hidden_dim=hidden_dim,
+     198 +        num_columns=num_columns,
+     199 +        atoms_per_column=atoms_per_column,
+     200 +        support_router=support_router,
+     201 +        contextual_router_hidden_dim=contextual_router_hidden_dim,
+     202 +    )
+     203 +
+     204 +    base_logits = _base_forward(base_params, inputs)
+     205 +    zero_init_logits = _forward_with_residual(
+     206 +        base_params,
+     207 +        residual_params,
+     208 +        inputs,
+     209 +        num_columns=num_columns,
+     210 +        top_k=top_k,
+     211 +        support_router=support_router,
+     212 +    )
+     213 +    hep_logits = forward_with_hep_alpha(
+     214 +        base_params,
+     215 +        residual_params,
+     216 +        inputs,
+     217 +        pc_steps=pc_steps,
+     218 +        hep_alpha=0.0,
+     219 +        num_columns=num_columns,
+     220 +        top_k=top_k,
+     221 +        support_router=support_router,
+     222 +        pinned_support=pinned_support,
+     223 +        hep_update_clip_norm=hep_update_clip_norm,
+     224 +        hep_settling_objective=hep_settling_objective,
+     225 +        targets=targets,
+     226 +        vocab_size=vocab_size,
+     227 +    )
+     228 +    base_loss = _cross_entropy(base_logits, targets, vocab_size)
+     229 +    zero_init_loss = _cross_entropy(zero_init_logits, targets, vocab_size)
+     230 +    max_zero_delta = _max_abs(base_logits - zero_init_logits)
+     231 +    initial_hep_alpha0_delta = _max_abs(zero_init_logits - hep_logits)
+     232 +
+     233 +    base_snapshot = _tree_copy(base_params)
+     234 +    before_residual = _tree_copy(residual_params)
+     235 +    optimizer = optax.adamw(learning_rate)
+     236 +    opt_state = optimizer.init(residual_params)
+     237 +
+     238 +    loss_kwargs = {
+     239 +        "objective": residual_objective,
+     240 +        "ce_anchor_weight": ce_anchor_weight,
+     241 +        "confidence_penalty_weight": confidence_penalty_weight,
+     242 +        "margin_penalty_weight": margin_penalty_weight,
+     243 +        "target_logit_margin": target_logit_margin,
+     244 +        "label_smoothing_weight": label_smoothing_weight,
+     245 +        "focal_gamma": focal_gamma,
+     246 +        "temporal_consistency_weight": temporal_consistency_weight,
+     247 +        "num_columns": num_columns,
+     248 +        "top_k": top_k,
+     249 +        "support_router": support_router,
+     250 +    }
+     251 +    loss_fn = lambda rp: _residual_loss(
+     252 +        base_params,
+     253 +        rp,
+     254 +        inputs,
+     255 +        targets,
+     256 +        vocab_size,
+     257 +        **loss_kwargs,
+     258 +    )
+     259 +    initial_loss = float(loss_fn(residual_params))
+     260 +    metric_rows: list[dict[str, float | int | str]] = [
+     261 +        _metric_row(
+     262 +            step=0,
+     263 +            phase="initial",
+     264 +            residual_objective=residual_objective,
+     265 +            base_loss=float(base_loss),
+     266 +            residual_loss=initial_loss,
+     267 +            zero_init_loss=float(zero_init_loss),
+     268 +            residual_parameter_delta=0.0,
+     269 +            max_zero_init_logit_delta=max_zero_delta,
+     270 +            max_hep_alpha0_logit_delta=initial_hep_alpha0_delta,
+     271 +            hep_alpha="",
+     272 +            hep_loss="",
+     273 +            max_hep_logit_delta_from_ordinary="",
+     274 +            hep_support_change_fraction="",
+     275 +            hep_pinned_vs_repicked_logit_delta="",
+     276 +        )
+     277 +    ]
+     278 +
+     279 +    post_step_loss = initial_loss
+     280 +    max_hep_alpha0_delta = initial_hep_alpha0_delta
+     281 +    for step in range(1, max_steps + 1):
+     282 +        loss_value, grads = jax.value_and_grad(loss_fn)(residual_params)
+     283 +        updates, opt_state = optimizer.update(grads, opt_state, residual_params)
+     284 +        residual_params = optax.apply_updates(residual_params, updates)
+     285 +        post_step_loss = float(loss_fn(residual_params))
+     286 +        max_hep_alpha0_delta = _max_hep_delta_from_ordinary(
+     287 +            base_params,
+     288 +            residual_params,
+     289 +            inputs,
+     290 +            pc_steps=pc_steps,
+     291 +            hep_alpha=0.0,
+     292 +            num_columns=num_columns,
+     293 +            top_k=top_k,
+     294 +            support_router=support_router,
+     295 +            pinned_support=pinned_support,
+     296 +            hep_update_clip_norm=hep_update_clip_norm,
+     297 +            hep_settling_objective=hep_settling_objective,
+     298 +            targets=targets,
+     299 +            vocab_size=vocab_size,
+     300 +        )
+     301 +        metric_rows.append(
+     302 +            _metric_row(
+     303 +                step=step,
+     304 +                phase=_residual_update_phase(residual_objective),
+     305 +                residual_objective=residual_objective,
+     306 +                base_loss=float(base_loss),
+     307 +                residual_loss=post_step_loss,
+     308 +                zero_init_loss=float(zero_init_loss),
+     309 +                residual_parameter_delta=_tree_abs_delta(before_residual, residual_params),
+     310 +                max_zero_init_logit_delta=max_zero_delta,
+     311 +                max_hep_alpha0_logit_delta=max_hep_alpha0_delta,
+     312 +                hep_alpha="",
+     313 +                hep_loss="",
+     314 +                max_hep_logit_delta_from_ordinary="",
+     315 +                hep_support_change_fraction="",
+     316 +                hep_pinned_vs_repicked_logit_delta="",
+     317 +            )
+     318 +        )
+     319 +        _ = loss_value
+     320 +
+     321 +    if support_stress_preset:
+     322 +        residual_params = _apply_hep_support_stress(
+     323 +            base_params,
+     324 +            residual_params,
+     325 +            inputs,
+     326 +            num_columns=num_columns,
+     327 +            top_k=top_k,
+     328 +        )
+     329 +        post_step_loss = float(loss_fn(residual_params))
+     330 +
+     331 +    support_instability = _hep_support_instability(
+     332 +        base_params,
+     333 +        residual_params,
+     334 +        inputs,
+     335 +        pc_steps=pc_steps,
+     336 +        hep_alpha=1.0,
+     337 +        num_columns=num_columns,
+     338 +        top_k=top_k,
+     339 +        support_router=support_router,
+     340 +        hep_update_clip_norm=hep_update_clip_norm,
+     341 +    )
+     342 +    support_audit = _residual_support_audit(
+     343 +        base_params,
+     344 +        residual_params,
+     345 +        inputs,
+     346 +        num_columns=num_columns,
+     347 +        top_k=top_k,
+     348 +        support_router=support_router,
+     349 +    )
+     350 +    hep_sweep_rows = _evaluate_hep_alpha_sweep(
+     351 +        base_params,
+     352 +        residual_params,
+     353 +        inputs,
+     354 +        targets,
+     355 +        vocab_size,
+     356 +        pc_steps=pc_steps,
+     357 +        alphas=hep_alpha_sweep,
+     358 +        num_columns=num_columns,
+     359 +        top_k=top_k,
+     360 +        support_router=support_router,
+     361 +        pinned_support=pinned_support,
+     362 +        hep_update_clip_norm=hep_update_clip_norm,
+     363 +        hep_settling_objective=hep_settling_objective,
+     364 +    )
+     365 +    for sweep_row in hep_sweep_rows:
+     366 +        if sweep_row["alpha"] == 0.0:
+     367 +            max_hep_alpha0_delta = sweep_row["max_logit_delta_from_ordinary"]
+     368 +        metric_rows.append(
+     369 +            _metric_row(
+     370 +                step=max_steps,
+     371 +                phase="hep_sweep",
+     372 +                residual_objective=residual_objective,
+     373 +                base_loss=float(base_loss),
+     374 +                residual_loss=post_step_loss,
+     375 +                zero_init_loss=float(zero_init_loss),
+     376 +                residual_parameter_delta=_tree_abs_delta(before_residual, residual_params),
+     377 +                max_zero_init_logit_delta=max_zero_delta,
+     378 +                max_hep_alpha0_logit_delta=max_hep_alpha0_delta,
+     379 +                hep_alpha=sweep_row["alpha"],
+     380 +                hep_loss=sweep_row["loss"],
+     381 +                max_hep_logit_delta_from_ordinary=sweep_row[
+     382 +                    "max_logit_delta_from_ordinary"
+     383 +                ],
+     384 +                hep_support_change_fraction=sweep_row["support_change_fraction"],
+     385 +                hep_pinned_vs_repicked_logit_delta=sweep_row[
+     386 +                    "pinned_vs_repicked_logit_delta"
+     387 +                ],
+     388 +            )
+     389 +        )
+     390 +
+     391 +    residual_delta = _tree_abs_delta(before_residual, residual_params)
+     392 +    invariants = {
+     393 +        "zero_init_identity": max_zero_delta <= 1e-6,
+     394 +        "frozen_base_unchanged": _tree_all_equal(base_snapshot, base_params),
+     395 +        "hep_alpha_0_equivalence": max_hep_alpha0_delta <= 1e-6,
+     396 +        "residual_parameters_updated": residual_delta > 0.0,
+     397 +    }
+     398 +
+     399 +    return Phase0Result(
+     400 +        residual_objective=residual_objective,
+     401 +        ce_anchor_weight=ce_anchor_weight,
+     402 +        confidence_penalty_weight=confidence_penalty_weight,
+     403 +        margin_penalty_weight=margin_penalty_weight,
+     404 +        target_logit_margin=target_logit_margin,
+     405 +        label_smoothing_weight=label_smoothing_weight,
+     406 +        focal_gamma=focal_gamma,
+     407 +        temporal_consistency_weight=temporal_consistency_weight,
+     408 +        dataset=dataset,
+     409 +        vocab_size=vocab_size,
+     410 +        seq_len=seq_len,
+     411 +        batch_size=int(inputs.shape[0]),
+     412 +        num_columns=num_columns,
+     413 +        atoms_per_column=atoms_per_column,
+     414 +        top_k=top_k,
+     415 +        support_router=support_router,
+     416 +        contextual_router_hidden_dim=contextual_router_hidden_dim,
+     417 +        base_loss=float(base_loss),
+     418 +        zero_init_loss=float(zero_init_loss),
+     419 +        initial_loss=initial_loss,
+     420 +        post_step_loss=post_step_loss,
+     421 +        training_steps=max_steps,
+     422 +        metric_rows=metric_rows,
+     423 +        residual_parameter_delta=residual_delta,
+     424 +        max_zero_init_logit_delta=max_zero_delta,
+     425 +        max_hep_alpha0_logit_delta=max_hep_alpha0_delta,
+     426 +        pinned_support=pinned_support,
+     427 +        support_stress=support_stress,
+     428 +        support_stress_preset=support_stress_preset,
+     429 +        support_instability=support_instability,
+     430 +        support_audit=support_audit,
+     431 +        hep_update_clip_norm=hep_update_clip_norm,
+     432 +        hep_settling_objective=hep_settling_objective,
+     433 +        hep_alpha_sweep=hep_sweep_rows,
+     434 +        invariants=invariants,
+     435 +    )
+     436 +
+     437 +
+     438 +def _validate_phase0_config(**kwargs: Any) -> None:
+     439 +    if kwargs["pc_steps"] < 1:
+     440 +        raise ValueError("inference.pc_steps must be at least 1")
+     441 +    if kwargs["max_steps"] < 1:
+     442 +        raise ValueError("run.max_steps must be at least 1 for Phase 0 smoke")
+     443 +    if kwargs["hep_update_clip_norm"] is not None and kwargs["hep_update_clip_norm"] <= 0.0:
+     444 +        raise ValueError("inference.hep_update_clip_norm must be positive when set")
+     445 +    for alpha in kwargs["hep_alpha_sweep"]:
+     446 +        if alpha < 0.0 or alpha > 1.0:
+     447 +            raise ValueError("HEP alpha values must be between 0.0 and 1.0")
+     448 +    for name in [
+     449 +        "ce_anchor_weight",
+     450 +        "confidence_penalty_weight",
+     451 +        "margin_penalty_weight",
+     452 +        "target_logit_margin",
+     453 +        "focal_gamma",
+     454 +        "temporal_consistency_weight",
+     455 +    ]:
+     456 +        if kwargs[name] < 0.0:
+     457 +            raise ValueError(f"training.{name} must be non-negative")
+     458 +    if kwargs["label_smoothing_weight"] < 0.0 or kwargs["label_smoothing_weight"] >= 1.0:
+     459 +        raise ValueError("training.label_smoothing_weight must be in [0.0, 1.0)")
+     460 +    if kwargs["support_router"] not in SUPPORT_ROUTER_CHOICES:
+     461 +        raise ValueError(
+     462 +            "model.columns.support_router must be one of: "
+     463 +            "linear, contextual_mlp, contextual_mlp_causal"
+     464 +        )
+     465 +    if kwargs["contextual_router_hidden_dim"] < 1:
+     466 +        raise ValueError("model.columns.contextual_router_hidden_dim must be positive")
+     467 +    if kwargs["residual_objective"] not in {
+     468 +        "supervised_ce",
+     469 +        "supervised_ce_confidence_penalty",
+     470 +        "supervised_ce_margin_penalty",
+     471 +        "supervised_ce_label_smoothing",
+     472 +        "supervised_ce_focal",
+     473 +        "supervised_ce_temporal_consistency",
+     474 +        "pc_logit_mse",
+     475 +        "pc_logit_mse_ce_anchor",
+     476 +    }:
+     477 +        raise ValueError("training.residual_objective is not supported")
+     478 +    if kwargs["hep_settling_objective"] not in {
+     479 +        "residual_adapter",
+     480 +        "prediction_entropy_gradient",
+     481 +        "temporal_consistency_gradient",
+     482 +        "supervised_ce_gradient",
+     483 +    }:
+     484 +        raise ValueError("inference.hep_settling_objective is not supported")
+     485 +
+     486 +
+     487 +def _init_base_params(
+     488 +    key: jax.Array,
+     489 +    *,
+     490 +    vocab_size: int,
+     491 +    seq_len: int,
+     492 +    hidden_dim: int,
+     493 +    layers: int,
+     494 +) -> dict[str, Any]:
+     495 +    keys = jax.random.split(key, layers + 3)
+     496 +    params = {
+     497 +        "token_embedding": jax.random.normal(
+     498 +            keys[0], (vocab_size, hidden_dim), dtype=jnp.float32
+     499 +        )
+     500 +        * jnp.float32(0.02),
+     501 +        "position_embedding": jnp.zeros((seq_len, hidden_dim), dtype=jnp.float32),
+     502 +        "layers": tuple(_init_encoder_layer(k, hidden_dim) for k in keys[1 : layers + 1]),
+     503 +        "final_ln_gamma": jnp.ones((hidden_dim,), dtype=jnp.float32),
+     504 +        "final_ln_beta": jnp.zeros((hidden_dim,), dtype=jnp.float32),
+     505 +        "lm_head": jax.random.normal(
+     506 +            keys[-1], (hidden_dim, vocab_size), dtype=jnp.float32
+     507 +        )
+     508 +        * jnp.float32(1.0 / np.sqrt(hidden_dim)),
+     509 +    }
+     510 +    return params
+     511 +
+     512 +
+     513 +def _init_encoder_layer(key: jax.Array, hidden_dim: int) -> dict[str, jnp.ndarray]:
+     514 +    keys = jax.random.split(key, 6)
+     515 +    ff_dim = hidden_dim * 4
+     516 +    scale = jnp.float32(1.0 / np.sqrt(hidden_dim))
+     517 +    ff_scale = jnp.float32(1.0 / np.sqrt(ff_dim))
+     518 +    return {
+     519 +        "W_q": jax.random.normal(keys[0], (hidden_dim, hidden_dim), dtype=jnp.float32) * scale,
+     520 +        "W_k": jax.random.normal(keys[1], (hidden_dim, hidden_dim), dtype=jnp.float32) * scale,
+     521 +        "W_v": jax.random.normal(keys[2], (hidden_dim, hidden_dim), dtype=jnp.float32) * scale,
+     522 +        "W_o": jax.random.normal(keys[3], (hidden_dim, hidden_dim), dtype=jnp.float32) * scale,
+     523 +        "W_ff1": jax.random.normal(keys[4], (hidden_dim, ff_dim), dtype=jnp.float32) * scale,
+     524 +        "W_ff2": jax.random.normal(keys[5], (ff_dim, hidden_dim), dtype=jnp.float32) * ff_scale,
+     525 +        "b_q": jnp.zeros((hidden_dim,), dtype=jnp.float32),
+     526 +        "b_k": jnp.zeros((hidden_dim,), dtype=jnp.float32),
+     527 +        "b_v": jnp.zeros((hidden_dim,), dtype=jnp.float32),
+     528 +        "b_o": jnp.zeros((hidden_dim,), dtype=jnp.float32),
+     529 +        "b_ff1": jnp.zeros((ff_dim,), dtype=jnp.float32),
+     530 +        "b_ff2": jnp.zeros((hidden_dim,), dtype=jnp.float32),
+     531 +        "ln1_gamma": jnp.ones((hidden_dim,), dtype=jnp.float32),
+     532 +        "ln1_beta": jnp.zeros((hidden_dim,), dtype=jnp.float32),
+     533 +        "ln2_gamma": jnp.ones((hidden_dim,), dtype=jnp.float32),
+     534 +        "ln2_beta": jnp.zeros((hidden_dim,), dtype=jnp.float32),
+     535 +    }
+     536 +
+     537 +
+     538 +def _encode(base_params: dict[str, Any], input_ids: jnp.ndarray) -> jnp.ndarray:
+     539 +    seq_len = input_ids.shape[1]
+     540 +    hidden = (
+     541 +        base_params["token_embedding"][input_ids]
+     542 +        + base_params["position_embedding"][:seq_len]
+     543 +    )
+     544 +    for layer in base_params["layers"]:
+     545 +        hidden = _encoder_layer_forward(layer, hidden)
+     546 +    return layer_norm_last(hidden, base_params["final_ln_gamma"], base_params["final_ln_beta"])
+     547 +
+     548 +
+     549 +def _encoder_layer_forward(layer: dict[str, jnp.ndarray], hidden: jnp.ndarray) -> jnp.ndarray:
+     550 +    batch_size, seq_len, hidden_dim = hidden.shape
+     551 +    num_heads = 4
+     552 +    head_dim = hidden_dim // num_heads
+     553 +
+     554 +    q = jnp.matmul(hidden, layer["W_q"]) + layer["b_q"]
+     555 +    k = jnp.matmul(hidden, layer["W_k"]) + layer["b_k"]
+     556 +    v = jnp.matmul(hidden, layer["W_v"]) + layer["b_v"]
+     557 +
+     558 +    q = q.reshape(batch_size, seq_len, num_heads, head_dim).transpose(0, 2, 1, 3)
+     559 +    k = k.reshape(batch_size, seq_len, num_heads, head_dim).transpose(0, 2, 1, 3)
+     560 +    v = v.reshape(batch_size, seq_len, num_heads, head_dim).transpose(0, 2, 1, 3)
+     561 +    scores = jnp.matmul(q, jnp.swapaxes(k, -1, -2)) / jnp.sqrt(jnp.float32(head_dim))
+     562 +    attn = jax.nn.softmax(scores, axis=-1)
+     563 +    attn_out = jnp.matmul(attn, v).transpose(0, 2, 1, 3).reshape(
+     564 +        batch_size, seq_len, hidden_dim
+     565 +    )
+     566 +    attn_out = jnp.matmul(attn_out, layer["W_o"]) + layer["b_o"]
+     567 +    hidden = layer_norm_last(hidden + attn_out, layer["ln1_gamma"], layer["ln1_beta"])
+     568 +    ff = gelu(jnp.matmul(hidden, layer["W_ff1"]) + layer["b_ff1"])
+     569 +    ff = jnp.matmul(ff, layer["W_ff2"]) + layer["b_ff2"]
+     570 +    return layer_norm_last(hidden + ff, layer["ln2_gamma"], layer["ln2_beta"])
+     571 +
+     572 +
+     573 +def _decode(base_params: dict[str, Any], hidden: jnp.ndarray) -> jnp.ndarray:
+     574 +    return jnp.matmul(hidden, base_params["lm_head"])
+     575 +
+     576 +
+     577 +def _base_forward(base_params: dict[str, Any], input_ids: jnp.ndarray) -> jnp.ndarray:
+     578 +    return _decode(base_params, _encode(base_params, input_ids))
+     579 +
+     580 +
+     581 +def _forward_with_residual(
+     582 +    base_params: dict[str, Any],
+     583 +    residual_params: NodeParams,
+     584 +    input_ids: jnp.ndarray,
+     585 +    *,
+     586 +    num_columns: int,
+     587 +    top_k: int,
+     588 +    support_router: str,
+     589 +) -> jnp.ndarray:
+     590 +    hidden = _encode(base_params, input_ids)
+     591 +    settled, _ = residual_forward(
+     592 +        residual_params,
+     593 +        hidden,
+     594 +        num_columns=num_columns,
+     595 +        top_k=top_k,
+     596 +        support_router=support_router,
+     597 +    )
+     598 +    return _decode(base_params, settled)
+     599 +
+     600 +
+     601 +def forward_with_hep_alpha(
+     602 +    base_params: dict[str, Any],
+     603 +    residual_params: NodeParams,
+     604 +    input_ids: jnp.ndarray,
+     605 +    *,
+     606 +    pc_steps: int,
+     607 +    hep_alpha: float,
+     608 +    num_columns: int,
+     609 +    top_k: int,
+     610 +    support_router: str,
+     611 +    pinned_support: bool = False,
+     612 +    hep_update_clip_norm: float | None = None,
+     613 +    hep_settling_objective: str = "residual_adapter",
+     614 +    targets: jnp.ndarray | None = None,
+     615 +    vocab_size: int | None = None,
+     616 +) -> jnp.ndarray:
+     617 +    if pc_steps < 1:
+     618 +        raise ValueError("pc_steps must be at least 1")
+     619 +    if hep_alpha < 0.0 or hep_alpha > 1.0:
+     620 +        raise ValueError("hep_alpha must be between 0.0 and 1.0")
+     621 +    if hep_update_clip_norm is not None and hep_update_clip_norm <= 0.0:
+     622 +        raise ValueError("hep_update_clip_norm must be positive when set")
+     623 +    if hep_settling_objective == "supervised_ce_gradient" and (
+     624 +        targets is None or vocab_size is None
+     625 +    ):
+     626 +        raise ValueError("supervised_ce_gradient HEP settling requires targets and vocab_size")
+     627 +
+     628 +    hidden = _encode(base_params, input_ids)
+     629 +    support_indices = None
+     630 +    if pinned_support:
+     631 +        settled, support_indices = residual_forward(
+     632 +            residual_params,
+     633 +            hidden,
+     634 +            num_columns=num_columns,
+     635 +            top_k=top_k,
+     636 +            support_router=support_router,
+     637 +        )
+     638 +    else:
+     639 +        settled, _ = residual_forward(
+     640 +            residual_params,
+     641 +            hidden,
+     642 +            num_columns=num_columns,
+     643 +            top_k=top_k,
+     644 +            support_router=support_router,
+     645 +        )
+     646 +
+     647 +    for _ in range(1, pc_steps):
+     648 +        if hep_settling_objective == "supervised_ce_gradient":
+     649 +            update = _supervised_ce_hidden_update(
+     650 +                base_params, settled, targets, vocab_size, max_norm=hep_update_clip_norm
+     651 +            )
+     652 +        elif hep_settling_objective == "prediction_entropy_gradient":
+     653 +            update = _prediction_entropy_hidden_update(
+     654 +                base_params, settled, max_norm=hep_update_clip_norm
+     655 +            )
+     656 +        elif hep_settling_objective == "temporal_consistency_gradient":
+     657 +            update = _temporal_consistency_hidden_update(
+     658 +                base_params, settled, max_norm=hep_update_clip_norm
+     659 +            )
+     660 +        else:
+     661 +            proposed, _ = residual_forward(
+     662 +                residual_params,
+     663 +                settled,
+     664 +                num_columns=num_columns,
+     665 +                top_k=top_k,
+     666 +                support_router=support_router,
+     667 +                support_indices=support_indices,
+     668 +            )
+     669 +            update = _clip_update(proposed - settled, hep_update_clip_norm)
+     670 +        settled = settled + jnp.float32(hep_alpha) * update
+     671 +    return _decode(base_params, settled)
+     672 +
+     673 +
+     674 +def _supervised_ce_hidden_update(
+     675 +    base_params: dict[str, Any],
+     676 +    hidden: jnp.ndarray,
+     677 +    targets: jnp.ndarray,
+     678 +    vocab_size: int,
+     679 +    *,
+     680 +    max_norm: float | None,
+     681 +) -> jnp.ndarray:
+     682 +    loss_fn = lambda h: _cross_entropy(_decode(base_params, h), targets, vocab_size)
+     683 +    gradient = jax.grad(loss_fn)(hidden)
+     684 +    return _clip_update(-gradient, max_norm)
+     685 +
+     686 +
+     687 +def _prediction_entropy_hidden_update(
+     688 +    base_params: dict[str, Any],
+     689 +    hidden: jnp.ndarray,
+     690 +    *,
+     691 +    max_norm: float | None,
+     692 +) -> jnp.ndarray:
+     693 +    def entropy_fn(h: jnp.ndarray) -> jnp.ndarray:
+     694 +        logits = _decode(base_params, h)
+     695 +        log_probs = jax.nn.log_softmax(logits, axis=-1)
+     696 +        probs = jax.nn.softmax(logits, axis=-1)
+     697 +        return -jnp.mean(jnp.sum(probs * log_probs, axis=-1))
+     698 +
+     699 +    gradient = jax.grad(entropy_fn)(hidden)
+     700 +    return _clip_update(-gradient, max_norm)
+     701 +
+     702 +
+     703 +def _temporal_consistency_hidden_update(
+     704 +    base_params: dict[str, Any],
+     705 +    hidden: jnp.ndarray,
+     706 +    *,
+     707 +    max_norm: float | None,
+     708 +) -> jnp.ndarray:
+     709 +    if hidden.shape[1] < 2:
+     710 +        return jnp.zeros_like(hidden)
+     711 +
+     712 +    def consistency_fn(h: jnp.ndarray) -> jnp.ndarray:
+     713 +        logits = _decode(base_params, h)
+     714 +        teacher_probs = jax.nn.softmax(jax.lax.stop_gradient(logits[:, :-1, :]), axis=-1)
+     715 +        student_log_probs = jax.nn.log_softmax(logits[:, 1:, :], axis=-1)
+     716 +        return -jnp.mean(jnp.sum(teacher_probs * student_log_probs, axis=-1))
+     717 +
+     718 +    gradient = jax.grad(consistency_fn)(hidden)
+     719 +    return _clip_update(-gradient, max_norm)
+     720 +
+     721 +
+     722 +def _clip_update(update: jnp.ndarray, max_norm: float | None) -> jnp.ndarray:
+     723 +    if max_norm is None:
+     724 +        return update
+     725 +    norm = jnp.linalg.norm(update, axis=-1, keepdims=True)
+     726 +    scale = jnp.minimum(jnp.float32(1.0), jnp.float32(max_norm) / jnp.maximum(norm, 1e-12))
+     727 +    return update * scale
+     728 +
+     729 +
+     730 +def _residual_loss(
+     731 +    base_params: dict[str, Any],
+     732 +    residual_params: NodeParams,
+     733 +    inputs: jnp.ndarray,
+     734 +    targets: jnp.ndarray,
+     735 +    vocab_size: int,
+     736 +    *,
+     737 +    objective: str,
+     738 +    ce_anchor_weight: float,
+     739 +    confidence_penalty_weight: float,
+     740 +    margin_penalty_weight: float,
+     741 +    target_logit_margin: float,
+     742 +    label_smoothing_weight: float,
+     743 +    focal_gamma: float,
+     744 +    temporal_consistency_weight: float,
+     745 +    num_columns: int,
+     746 +    top_k: int,
+     747 +    support_router: str,
+     748 +) -> jnp.ndarray:
+     749 +    logits = _forward_with_residual(
+     750 +        base_params,
+     751 +        residual_params,
+     752 +        inputs,
+     753 +        num_columns=num_columns,
+     754 +        top_k=top_k,
+     755 +        support_router=support_router,
+     756 +    )
+     757 +    prediction_logits = logits[:, :-1, :]
+     758 +    prediction_targets = targets[:, :-1]
+     759 +    ce_loss = _cross_entropy_from_prediction_logits(
+     760 +        prediction_logits, prediction_targets, vocab_size
+     761 +    )
+     762 +    if objective == "supervised_ce":
+     763 +        return ce_loss
+     764 +    if objective == "supervised_ce_confidence_penalty":
+     765 +        log_probs = jax.nn.log_softmax(prediction_logits, axis=-1)
+     766 +        probs = jax.nn.softmax(prediction_logits, axis=-1)
+     767 +        entropy = -jnp.mean(jnp.sum(probs * log_probs, axis=-1))
+     768 +        return ce_loss - jnp.float32(confidence_penalty_weight) * entropy
+     769 +    if objective == "supervised_ce_margin_penalty":
+     770 +        target_logits = jnp.take_along_axis(
+     771 +            prediction_logits, prediction_targets[..., None], axis=-1
+     772 +        )[..., 0]
+     773 +        target_mask = jax.nn.one_hot(prediction_targets, vocab_size).astype(bool)
+     774 +        strongest_other = jnp.max(
+     775 +            jnp.where(target_mask, jnp.asarray(-jnp.inf, dtype=prediction_logits.dtype), prediction_logits),
+     776 +            axis=-1,
+     777 +        )
+     778 +        margin_shortfall = jax.nn.relu(
+     779 +            jnp.float32(target_logit_margin) - (target_logits - strongest_other)
+     780 +        )
+     781 +        return ce_loss + jnp.float32(margin_penalty_weight) * jnp.mean(margin_shortfall)
+     782 +    if objective == "supervised_ce_label_smoothing":
+     783 +        return _label_smoothed_cross_entropy(
+     784 +            prediction_logits, prediction_targets, vocab_size, label_smoothing_weight
+     785 +        )
+     786 +    if objective == "supervised_ce_focal":
+     787 +        per_token_ce = _per_token_cross_entropy(prediction_logits, prediction_targets)
+     788 +        target_probs = jnp.exp(-per_token_ce)
+     789 +        return jnp.mean(jnp.power(1.0 - target_probs, focal_gamma) * per_token_ce)
+     790 +    if objective == "supervised_ce_temporal_consistency":
+     791 +        if prediction_logits.shape[1] < 2:
+     792 +            return ce_loss
+     793 +        teacher_probs = jax.nn.softmax(
+     794 +            jax.lax.stop_gradient(prediction_logits[:, :-1, :]), axis=-1
+     795 +        )
+     796 +        student_log_probs = jax.nn.log_softmax(prediction_logits[:, 1:, :], axis=-1)
+     797 +        temporal_loss = -jnp.mean(jnp.sum(teacher_probs * student_log_probs, axis=-1))
+     798 +        return ce_loss + jnp.float32(temporal_consistency_weight) * temporal_loss
+     799 +    if objective in {"pc_logit_mse", "pc_logit_mse_ce_anchor"}:
+     800 +        probs = jax.nn.softmax(prediction_logits, axis=-1)
+     801 +        target_probs = jax.nn.one_hot(prediction_targets, vocab_size, dtype=probs.dtype)
+     802 +        pc_loss = jnp.mean(jnp.square(probs - target_probs))
+     803 +        if objective == "pc_logit_mse":
+     804 +            return pc_loss
+     805 +        return pc_loss + jnp.float32(ce_anchor_weight) * ce_loss
+     806 +    raise ValueError(f"Unsupported residual objective: {objective}")
+     807 +
+     808 +
+     809 +def _cross_entropy(logits: jnp.ndarray, targets: jnp.ndarray, vocab_size: int) -> jnp.ndarray:
+     810 +    return _cross_entropy_from_prediction_logits(logits[:, :-1, :], targets[:, :-1], vocab_size)
+     811 +
+     812 +
+     813 +def _cross_entropy_from_prediction_logits(
+     814 +    prediction_logits: jnp.ndarray,
+     815 +    prediction_targets: jnp.ndarray,
+     816 +    vocab_size: int,
+     817 +) -> jnp.ndarray:
+     818 +    _ = vocab_size
+     819 +    return jnp.mean(_per_token_cross_entropy(prediction_logits, prediction_targets))
+     820 +
+     821 +
+     822 +def _per_token_cross_entropy(
+     823 +    prediction_logits: jnp.ndarray,
+     824 +    prediction_targets: jnp.ndarray,
+     825 +) -> jnp.ndarray:
+     826 +    log_probs = jax.nn.log_softmax(prediction_logits, axis=-1)
+     827 +    return -jnp.take_along_axis(log_probs, prediction_targets[..., None], axis=-1)[..., 0]
+     828 +
+     829 +
+     830 +def _label_smoothed_cross_entropy(
+     831 +    prediction_logits: jnp.ndarray,
+     832 +    prediction_targets: jnp.ndarray,
+     833 +    vocab_size: int,
+     834 +    smoothing: float,
+     835 +) -> jnp.ndarray:
+     836 +    log_probs = jax.nn.log_softmax(prediction_logits, axis=-1)
+     837 +    targets = jax.nn.one_hot(prediction_targets, vocab_size, dtype=log_probs.dtype)
+     838 +    smooth = jnp.float32(smoothing)
+     839 +    targets = targets * (1.0 - smooth) + smooth / vocab_size
+     840 +    return -jnp.mean(jnp.sum(targets * log_probs, axis=-1))
+     841 +
+     842 +
+     843 +def _parse_hep_alpha_sweep(
+     844 +    inference_cfg: dict[str, Any],
+     845 +    *,
+     846 +    fallback_alpha: float,
+     847 +) -> list[float]:
+     848 +    configured = inference_cfg.get("hep_alpha_sweep")
+     849 +    if configured is None:
+     850 +        return [] if fallback_alpha == 0.0 else [fallback_alpha]
+     851 +    if isinstance(configured, str):
+     852 +        values = [part.strip() for part in configured.split(",") if part.strip()]
+     853 +        return [float(value) for value in values]
+     854 +    if isinstance(configured, (list, tuple)):
+     855 +        return [float(value) for value in configured]
+     856 +    raise ValueError("inference.hep_alpha_sweep must be a list or comma-separated string")
+     857 +
+     858 +
+     859 +def _parse_optional_float(value: Any) -> float | None:
+     860 +    if value is None:
+     861 +        return None
+     862 +    return float(value)
+     863 +
+     864 +
+     865 +def _evaluate_hep_alpha_sweep(
+     866 +    base_params: dict[str, Any],
+     867 +    residual_params: NodeParams,
+     868 +    inputs: jnp.ndarray,
+     869 +    targets: jnp.ndarray,
+     870 +    vocab_size: int,
+     871 +    *,
+     872 +    pc_steps: int,
+     873 +    alphas: list[float],
+     874 +    num_columns: int,
+     875 +    top_k: int,
+     876 +    support_router: str,
+     877 +    pinned_support: bool,
+     878 +    hep_update_clip_norm: float | None,
+     879 +    hep_settling_objective: str,
+     880 +) -> list[dict[str, float]]:
+     881 +    rows = []
+     882 +    ordinary_logits = _forward_with_residual(
+     883 +        base_params,
+     884 +        residual_params,
+     885 +        inputs,
+     886 +        num_columns=num_columns,
+     887 +        top_k=top_k,
+     888 +        support_router=support_router,
+     889 +    )
+     890 +    for alpha in alphas:
+     891 +        support_instability = _hep_support_instability(
+     892 +            base_params,
+     893 +            residual_params,
+     894 +            inputs,
+     895 +            pc_steps=pc_steps,
+     896 +            hep_alpha=alpha,
+     897 +            num_columns=num_columns,
+     898 +            top_k=top_k,
+     899 +            support_router=support_router,
+     900 +            hep_update_clip_norm=hep_update_clip_norm,
+     901 +        )
+     902 +        hep_logits = forward_with_hep_alpha(
+     903 +            base_params,
+     904 +            residual_params,
+     905 +            inputs,
+     906 +            pc_steps=pc_steps,
+     907 +            hep_alpha=alpha,
+     908 +            num_columns=num_columns,
+     909 +            top_k=top_k,
+     910 +            support_router=support_router,
+     911 +            pinned_support=pinned_support,
+     912 +            hep_update_clip_norm=hep_update_clip_norm,
+     913 +            hep_settling_objective=hep_settling_objective,
+     914 +            targets=targets,
+     915 +            vocab_size=vocab_size,
+     916 +        )
+     917 +        loss = _cross_entropy(hep_logits, targets, vocab_size)
+     918 +        rows.append(
+     919 +            {
+     920 +                "alpha": float(alpha),
+     921 +                "loss": float(loss),
+     922 +                "max_logit_delta_from_ordinary": _max_abs(ordinary_logits - hep_logits),
+     923 +                "support_change_fraction": float(
+     924 +                    support_instability["support_change_fraction"]
+     925 +                ),
+     926 +                "support_transition_count": float(
+     927 +                    support_instability["support_transition_count"]
+     928 +                ),
+     929 +                "pinned_vs_repicked_logit_delta": float(
+     930 +                    support_instability["pinned_vs_repicked_logit_delta"]
+     931 +                ),
+     932 +            }
+     933 +        )
+     934 +    return rows
+     935 +
+     936 +
+     937 +def _hep_support_instability(
+     938 +    base_params: dict[str, Any],
+     939 +    residual_params: NodeParams,
+     940 +    inputs: jnp.ndarray,
+     941 +    *,
+     942 +    pc_steps: int,
+     943 +    hep_alpha: float,
+     944 +    num_columns: int,
+     945 +    top_k: int,
+     946 +    support_router: str,
+     947 +    hep_update_clip_norm: float | None = None,
+     948 +) -> dict[str, float | int | bool | None]:
+     949 +    if pc_steps < 1:
+     950 +        raise ValueError("pc_steps must be at least 1")
+     951 +    if hep_alpha < 0.0 or hep_alpha > 1.0:
+     952 +        raise ValueError("hep_alpha must be between 0.0 and 1.0")
+     953 +    hidden = _encode(base_params, inputs)
+     954 +    repicked_settled, initial_support = residual_forward(
+     955 +        residual_params,
+     956 +        hidden,
+     957 +        num_columns=num_columns,
+     958 +        top_k=top_k,
+     959 +        support_router=support_router,
+     960 +    )
+     961 +    pinned_settled = repicked_settled
+     962 +    changed_positions = jnp.zeros(initial_support.shape[:-1], dtype=bool)
+     963 +    support_transition_count = 0
+     964 +    for _ in range(1, pc_steps):
+     965 +        repicked_proposed, repicked_support = residual_forward(
+     966 +            residual_params,
+     967 +            repicked_settled,
+     968 +            num_columns=num_columns,
+     969 +            top_k=top_k,
+     970 +            support_router=support_router,
+     971 +        )
+     972 +        pinned_proposed, _ = residual_forward(
+     973 +            residual_params,
+     974 +            pinned_settled,
+     975 +            num_columns=num_columns,
+     976 +            top_k=top_k,
+     977 +            support_router=support_router,
+     978 +            support_indices=initial_support,
+     979 +        )
+     980 +        repicked_update = _clip_update(
+     981 +            repicked_proposed - repicked_settled, hep_update_clip_norm
+     982 +        )
+     983 +        pinned_update = _clip_update(
+     984 +            pinned_proposed - pinned_settled, hep_update_clip_norm
+     985 +        )
+     986 +        repicked_settled = repicked_settled + jnp.float32(hep_alpha) * repicked_update
+     987 +        pinned_settled = pinned_settled + jnp.float32(hep_alpha) * pinned_update
+     988 +        changed = jnp.any(repicked_support != initial_support, axis=-1)
+     989 +        support_transition_count += int(jnp.sum(changed))
+     990 +        changed_positions = jnp.logical_or(changed_positions, changed)
+     991 +
+     992 +    total_positions = int(changed_positions.size)
+     993 +    changed_position_count = int(jnp.sum(changed_positions))
+     994 +    repicked_logits = _decode(base_params, repicked_settled)
+     995 +    pinned_logits = _decode(base_params, pinned_settled)
+     996 +    return {
+     997 +        "pc_steps": pc_steps,
+     998 +        "hep_alpha": float(hep_alpha),
+     999 +        "hep_update_clip_norm": hep_update_clip_norm,
+    1000 +        "support_positions": total_positions,
+    1001 +        "support_changed_positions": changed_position_count,
+    1002 +        "support_change_fraction": (
+    1003 +            changed_position_count / total_positions if total_positions else 0.0
+    1004 +        ),
+    1005 +        "support_transition_count": support_transition_count,
+    1006 +        "pinned_vs_repicked_logit_delta": _max_abs(pinned_logits - repicked_logits),
+    1007 +        "support_changed": changed_position_count > 0,
+    1008 +    }
+    1009 +
+    1010 +
+    1011 +def _residual_support_audit(
+    1012 +    base_params: dict[str, Any],
+    1013 +    residual_params: NodeParams,
+    1014 +    inputs: jnp.ndarray,
+    1015 +    *,
+    1016 +    num_columns: int,
+    1017 +    top_k: int,
+    1018 +    support_router: str,
+    1019 +) -> dict[str, Any]:
+    1020 +    hidden = _encode(base_params, inputs)
+    1021 +    _, support = residual_forward(
+    1022 +        residual_params,
+    1023 +        hidden,
+    1024 +        num_columns=num_columns,
+    1025 +        top_k=top_k,
+    1026 +        support_router=support_router,
+    1027 +    )
+    1028 +    support_rows = np.asarray(support).reshape(-1, top_k)
+    1029 +    total_positions = int(support_rows.shape[0])
+    1030 +    column_counts = [0 for _ in range(num_columns)]
+    1031 +    support_set_counts: dict[str, int] = {}
+    1032 +    for row in support_rows.tolist():
+    1033 +        normalized = tuple(sorted(int(index) for index in row))
+    1034 +        key = ",".join(str(index) for index in normalized)
+    1035 +        support_set_counts[key] = support_set_counts.get(key, 0) + 1
+    1036 +        for index in normalized:
+    1037 +            column_counts[index] += 1
+    1038 +    used_columns = sum(1 for count in column_counts if count > 0)
+    1039 +    total_slots = total_positions * top_k
+    1040 +    max_column_count = max(column_counts, default=0)
+    1041 +    return {
+    1042 +        "support_positions": total_positions,
+    1043 +        "top_k": top_k,
+    1044 +        "num_columns": num_columns,
+    1045 +        "total_support_slots": total_slots,
+    1046 +        "used_columns": used_columns,
+    1047 +        "dead_columns": num_columns - used_columns,
+    1048 +        "column_counts": column_counts,
+    1049 +        "unique_support_sets": len(support_set_counts),
+    1050 +        "support_set_counts": dict(sorted(support_set_counts.items())),
+    1051 +        "max_column_fraction": max_column_count / total_slots if total_slots else 0.0,
+    1052 +    }
+    1053 +
+    1054 +
+    1055 +def _max_hep_delta_from_ordinary(
+    1056 +    base_params: dict[str, Any],
+    1057 +    residual_params: NodeParams,
+    1058 +    inputs: jnp.ndarray,
+    1059 +    *,
+    1060 +    pc_steps: int,
+    1061 +    hep_alpha: float,
+    1062 +    num_columns: int,
+    1063 +    top_k: int,
+    1064 +    support_router: str,
+    1065 +    pinned_support: bool,
+    1066 +    hep_update_clip_norm: float | None,
+    1067 +    hep_settling_objective: str,
+    1068 +    targets: jnp.ndarray,
+    1069 +    vocab_size: int,
+    1070 +) -> float:
+    1071 +    ordinary_logits = _forward_with_residual(
+    1072 +        base_params,
+    1073 +        residual_params,
+    1074 +        inputs,
+    1075 +        num_columns=num_columns,
+    1076 +        top_k=top_k,
+    1077 +        support_router=support_router,
+    1078 +    )
+    1079 +    hep_logits = forward_with_hep_alpha(
+    1080 +        base_params,
+    1081 +        residual_params,
+    1082 +        inputs,
+    1083 +        pc_steps=pc_steps,
+    1084 +        hep_alpha=hep_alpha,
+    1085 +        num_columns=num_columns,
+    1086 +        top_k=top_k,
+    1087 +        support_router=support_router,
+    1088 +        pinned_support=pinned_support,
+    1089 +        hep_update_clip_norm=hep_update_clip_norm,
+    1090 +        hep_settling_objective=hep_settling_objective,
+    1091 +        targets=targets,
+    1092 +        vocab_size=vocab_size,
+    1093 +    )
+    1094 +    return _max_abs(ordinary_logits - hep_logits)
+    1095 +
+    1096 +
+    1097 +def _apply_hep_support_stress(
+    1098 +    base_params: dict[str, Any],
+    1099 +    residual_params: NodeParams,
+    1100 +    inputs: jnp.ndarray,
+    1101 +    *,
+    1102 +    num_columns: int,
+    1103 +    top_k: int,
+    1104 +) -> NodeParams:
+    1105 +    if top_k != 1:
+    1106 +        raise ValueError("model.columns.support_stress requires top_k: 1")
+    1107 +    if num_columns < 2:
+    1108 +        raise ValueError("model.columns.support_stress requires at least 2 columns")
+    1109 +    hidden = _encode(base_params, inputs)
+    1110 +    direction = hidden.reshape(-1, hidden.shape[-1])[0]
+    1111 +    direction = direction / jnp.maximum(jnp.linalg.norm(direction), 1e-12)
+    1112 +    w = residual_params.weights["column_score_w"]
+    1113 +    w = w.at[:, 0].set(direction)
+    1114 +    w = w.at[:, 1].set(-direction)
+    1115 +    atom_values = residual_params.weights["atom_values"]
+    1116 +    atom_values = atom_values.at[0, 0, :].set(0.01 * direction)
+    1117 +    atom_values = atom_values.at[1, 0, :].set(-0.01 * direction)
+    1118 +    weights = dict(residual_params.weights)
+    1119 +    weights["column_score_w"] = w
+    1120 +    weights["atom_values"] = atom_values
+    1121 +    return NodeParams(weights=weights, biases=dict(residual_params.biases))
+    1122 +
+    1123 +
+    1124 +def _residual_update_phase(objective: str) -> str:
+    1125 +    if objective in {"pc_logit_mse", "pc_logit_mse_ce_anchor"}:
+    1126 +        return "pc_residual_update"
+    1127 +    return "residual_update"
+    1128 +
+    1129 +
+    1130 +def _metric_row(
+    1131 +    *,
+    1132 +    step: int,
+    1133 +    phase: str,
+    1134 +    residual_objective: str,
+    1135 +    base_loss: float,
+    1136 +    residual_loss: float,
+    1137 +    zero_init_loss: float,
+    1138 +    residual_parameter_delta: float,
+    1139 +    max_zero_init_logit_delta: float,
+    1140 +    max_hep_alpha0_logit_delta: float,
+    1141 +    hep_alpha: float | str,
+    1142 +    hep_loss: float | str,
+    1143 +    max_hep_logit_delta_from_ordinary: float | str,
+    1144 +    hep_support_change_fraction: float | str,
+    1145 +    hep_pinned_vs_repicked_logit_delta: float | str,
+    1146 +) -> dict[str, float | int | str]:
+    1147 +    return {
+    1148 +        "step": step,
+    1149 +        "phase": phase,
+    1150 +        "residual_objective": residual_objective,
+    1151 +        "base_loss": base_loss,
+    1152 +        "residual_loss": residual_loss,
+    1153 +        "zero_init_loss": zero_init_loss,
+    1154 +        "residual_parameter_delta": residual_parameter_delta,
+    1155 +        "max_zero_init_logit_delta": max_zero_init_logit_delta,
+    1156 +        "max_hep_alpha0_logit_delta": max_hep_alpha0_logit_delta,
+    1157 +        "hep_alpha": hep_alpha,
+    1158 +        "hep_loss": hep_loss,
+    1159 +        "max_hep_logit_delta_from_ordinary": max_hep_logit_delta_from_ordinary,
+    1160 +        "hep_support_change_fraction": hep_support_change_fraction,
+    1161 +        "hep_pinned_vs_repicked_logit_delta": hep_pinned_vs_repicked_logit_delta,
+    1162 +    }
+    1163 +
+    1164 +
+    1165 +def _tree_copy(tree: Any) -> Any:
+    1166 +    return jax.tree_util.tree_map(lambda x: jnp.array(x, copy=True), tree)
+    1167 +
+    1168 +
+    1169 +def _tree_abs_delta(left: Any, right: Any) -> float:
+    1170 +    leaves_left = jax.tree_util.tree_leaves(left)
+    1171 +    leaves_right = jax.tree_util.tree_leaves(right)
+    1172 +    return float(sum(float(jnp.sum(jnp.abs(a - b))) for a, b in zip(leaves_left, leaves_right)))
+    1173 +
+    1174 +
+    1175 +def _tree_all_equal(left: Any, right: Any) -> bool:
+    1176 +    leaves_left = jax.tree_util.tree_leaves(left)
+    1177 +    leaves_right = jax.tree_util.tree_leaves(right)
+    1178 +    return all(bool(jnp.array_equal(a, b)) for a, b in zip(leaves_left, leaves_right))
+    1179 +
+    1180 +
+    1181 +def _max_abs(value: jnp.ndarray) -> float:
+    1182 +    return float(jnp.max(jnp.abs(value)))
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The core JAX smoke implementation and FabricPC-compatible residual node are in place. I’m adding the command modules and tests next, then I’ll run the code and fix any issues found by the actual environment.
+
+• Edited 3 files (+1081 -0)
+  └ relaleap-FabricPC/relaleap_fabricpc/experiments/check_artifacts.py (+177 -0)
+      1 +"""Inspect completed Phase 0 comparison artifacts without rerunning experiments."""
+      2 +
+      3 +from __future__ import annotations
+      4 +
+      5 +import argparse
+      6 +import json
+      7 +from pathlib import Path
+      8 +from typing import Any
+      9 +
+     10 +from relaleap_fabricpc.experiments.compare import compare_comparison_to_baseline
+     11 +
+     12 +
+     13 +def check_comparison_artifacts(
+     14 +    comparison_dir: Path,
+     15 +    *,
+     16 +    baseline_reference: Path | None = None,
+     17 +    require_baseline_comparison: bool = False,
+     18 +) -> dict[str, Any]:
+     19 +    failures: list[dict[str, Any]] = []
+     20 +    summary_path = comparison_dir / "summary.json"
+     21 +    metrics_path = comparison_dir / "metrics.csv"
+     22 +    notes_path = comparison_dir / "notes.md"
+     23 +
+     24 +    for label, path in [
+     25 +        ("comparison.summary.json", summary_path),
+     26 +        ("comparison.metrics.csv", metrics_path),
+     27 +        ("comparison.notes.md", notes_path),
+     28 +    ]:
+     29 +        if not path.is_file():
+     30 +            failures.append(
+     31 +                {
+     32 +                    "field": label,
+     33 +                    "expected": "file exists",
+     34 +                    "actual": "missing",
+     35 +                    "path": str(path),
+     36 +                }
+     37 +            )
+     38 +
+     39 +    summary = _read_json(summary_path)
+     40 +    if summary is None:
+     41 +        failures.append(
+     42 +            {
+     43 +                "field": "comparison.summary",
+     44 +                "expected": "valid JSON object",
+     45 +                "actual": "missing or invalid",
+     46 +            }
+     47 +        )
+     48 +        verdict = {}
+     49 +    else:
+     50 +        verdict = summary.get("verdict") or {}
+     51 +
+     52 +    if verdict.get("status") != "pass":
+     53 +        failures.append(
+     54 +            {
+     55 +                "field": "comparison.verdict.status",
+     56 +                "expected": "pass",
+     57 +                "actual": verdict.get("status"),
+     58 +            }
+     59 +        )
+     60 +    if verdict.get("invariants_passed") is not True:
+     61 +        failures.append(
+     62 +            {
+     63 +                "field": "comparison.verdict.invariants_passed",
+     64 +                "expected": True,
+     65 +                "actual": verdict.get("invariants_passed"),
+     66 +            }
+     67 +        )
+     68 +    if verdict.get("artifact_invariants_passed") is not True:
+     69 +        failures.append(
+     70 +            {
+     71 +                "field": "comparison.verdict.artifact_invariants_passed",
+     72 +                "expected": True,
+     73 +                "actual": verdict.get("artifact_invariants_passed"),
+     74 +            }
+     75 +        )
+     76 +
+     77 +    baseline_path = comparison_dir / "baseline_comparison.json"
+     78 +    baseline_comparison: dict[str, Any] = {"present": baseline_path.is_file()}
+     79 +    if require_baseline_comparison and not baseline_path.is_file():
+     80 +        failures.append(
+     81 +            {
+     82 +                "field": "comparison.baseline_comparison.json",
+     83 +                "expected": "file exists",
+     84 +                "actual": "missing",
+     85 +                "path": str(baseline_path),
+     86 +            }
+     87 +        )
+     88 +    if baseline_path.is_file():
+     89 +        baseline_comparison = _read_json(baseline_path) or {
+     90 +            "present": True,
+     91 +            "status": "invalid",
+     92 +        }
+     93 +        baseline_comparison["present"] = True
+     94 +        if baseline_comparison.get("status") != "pass":
+     95 +            failures.append(
+     96 +                {
+     97 +                    "field": "baseline_comparison.status",
+     98 +                    "expected": "pass",
+     99 +                    "actual": baseline_comparison.get("status"),
+    100 +                }
+    101 +            )
+    102 +
+    103 +    baseline_reference_comparison = None
+    104 +    if baseline_reference is not None and summary is not None:
+    105 +        reference = _read_json(baseline_reference)
+    106 +        if reference is None:
+    107 +            failures.append(
+    108 +                {
+    109 +                    "field": "baseline_reference",
+    110 +                    "expected": "valid JSON object",
+    111 +                    "actual": "missing or invalid",
+    112 +                    "path": str(baseline_reference),
+    113 +                }
+    114 +            )
+    115 +        else:
+    116 +            baseline_reference_comparison = compare_comparison_to_baseline(
+    117 +                summary,
+    118 +                reference,
+    119 +                baseline_path=baseline_reference,
+    120 +            )
+    121 +            if baseline_reference_comparison["status"] != "pass":
+    122 +                failures.extend(baseline_reference_comparison["mismatches"])
+    123 +
+    124 +    report = {
+    125 +        "status": "pass" if not failures else "fail",
+    126 +        "comparison_dir": str(comparison_dir),
+    127 +        "summary_status": None if summary is None else summary.get("status"),
+    128 +        "verdict_status": verdict.get("status"),
+    129 +        "phase0_invariants": {
+    130 +            "passed": verdict.get("invariants_passed"),
+    131 +            "count": verdict.get("invariant_count", 0),
+    132 +            "failed": verdict.get("failed_invariants", []),
+    133 +        },
+    134 +        "artifact_invariants": {
+    135 +            "passed": verdict.get("artifact_invariants_passed"),
+    136 +            "count": verdict.get("artifact_invariant_count", 0),
+    137 +            "failed": verdict.get("failed_artifact_invariants", []),
+    138 +        },
+    139 +        "hep_alpha_acceptance": verdict.get("hep_alpha_acceptance"),
+    140 +        "baseline_comparison": baseline_comparison,
+    141 +        "baseline_reference_comparison": baseline_reference_comparison,
+    142 +        "failures": failures,
+    143 +    }
+    144 +    return report
+    145 +
+    146 +
+    147 +def _read_json(path: Path) -> dict[str, Any] | None:
+    148 +    try:
+    149 +        loaded = json.loads(path.read_text(encoding="utf-8"))
+    150 +    except (FileNotFoundError, json.JSONDecodeError):
+    151 +        return None
+    152 +    return loaded if isinstance(loaded, dict) else None
+    153 +
+    154 +
+    155 +def main() -> None:
+    156 +    parser = argparse.ArgumentParser(description=__doc__)
+    157 +    parser.add_argument("--comparison-dir", required=True, type=Path)
+    158 +    parser.add_argument("--baseline-reference", type=Path)
+    159 +    parser.add_argument("--require-baseline-comparison", action="store_true")
+    160 +    parser.add_argument("--out", type=Path)
+    161 +    args = parser.parse_args()
+    162 +    report = check_comparison_artifacts(
+    163 +        args.comparison_dir,
+    164 +        baseline_reference=args.baseline_reference,
+    165 +        require_baseline_comparison=args.require_baseline_comparison,
+    166 +    )
+    167 +    text = json.dumps(report, indent=2, sort_keys=True) + "\n"
+    168 +    if args.out is not None:
+    169 +        args.out.parent.mkdir(parents=True, exist_ok=True)
+    170 +        args.out.write_text(text, encoding="utf-8")
+    171 +    print(text, end="")
+    172 +    if report["status"] != "pass":
+    173 +        raise SystemExit(1)
+    174 +
+    175 +
+    176 +if __name__ == "__main__":
+    177 +    main()
+
+  └ relaleap-FabricPC/relaleap_fabricpc/experiments/compare.py (+551 -0)
+      1 +"""Run and compare Phase 0 smoke configurations."""
+      2 +
+      3 +from __future__ import annotations
+      4 +
+      5 +import argparse
+      6 +import csv
+      7 +import json
+      8 +import time
+      9 +from pathlib import Path
+     10 +from typing import Any
+     11 +
+     12 +from relaleap_fabricpc.experiments.run import run
+     13 +
+     14 +
+     15 +DEFAULT_CONFIGS = [
+     16 +    Path("configs/char_smoke.yaml"),
+     17 +    Path("configs/char_smoke_pc.yaml"),
+     18 +    Path("configs/char_smoke_hep.yaml"),
+     19 +]
+     20 +DEFAULT_HEP_MAX_LOGIT_DELTA = 0.1
+     21 +DEFAULT_HEP_MIN_LOSS_IMPROVEMENT = 0.0
+     22 +BASELINE_SCHEMA_VERSION = 1
+     23 +REQUIRED_ARTIFACT_INVARIANTS = ("summary_json", "metrics_csv", "notes_md")
+     24 +
+     25 +
+     26 +def run_comparison(
+     27 +    config_paths: list[Path],
+     28 +    out_dir: Path,
+     29 +    *,
+     30 +    hep_max_logit_delta: float = DEFAULT_HEP_MAX_LOGIT_DELTA,
+     31 +    hep_min_loss_improvement: float = DEFAULT_HEP_MIN_LOSS_IMPROVEMENT,
+     32 +) -> dict[str, Any]:
+     33 +    if len(config_paths) < 2:
+     34 +        raise ValueError("comparison requires at least two config paths")
+     35 +    if hep_max_logit_delta < 0.0:
+     36 +        raise ValueError("hep_max_logit_delta must be non-negative")
+     37 +    if hep_min_loss_improvement < 0.0:
+     38 +        raise ValueError("hep_min_loss_improvement must be non-negative")
+     39 +
+     40 +    start = time.time()
+     41 +    out_dir.mkdir(parents=True, exist_ok=True)
+     42 +    run_root = out_dir / "runs"
+     43 +    run_root.mkdir(parents=True, exist_ok=True)
+     44 +
+     45 +    entries = []
+     46 +    combined_rows = []
+     47 +    for config_path in config_paths:
+     48 +        run_dir = run_root / config_path.stem
+     49 +        summary = run(config_path, run_dir)
+     50 +        metric_rows = _read_metrics(run_dir / "metrics.csv")
+     51 +        entry = _comparison_entry(config_path, run_dir, summary, metric_rows)
+     52 +        entries.append(entry)
+     53 +        combined_rows.extend(_combined_rows(entry, metric_rows))
+     54 +
+     55 +    status = "ok" if all(entry["status"] == "ok" for entry in entries) else "failed"
+     56 +    verdict = _comparison_verdict(
+     57 +        entries,
+     58 +        status,
+     59 +        hep_max_logit_delta=hep_max_logit_delta,
+     60 +        hep_min_loss_improvement=hep_min_loss_improvement,
+     61 +    )
+     62 +    comparison = {
+     63 +        "status": status,
+     64 +        "out_dir": str(out_dir),
+     65 +        "runtime_seconds": round(time.time() - start, 4),
+     66 +        "loss_scale_note": (
+     67 +            "Residual objectives may use different loss scales; compare each "
+     68 +            "trajectory against its own initial loss."
+     69 +        ),
+     70 +        "verdict": verdict,
+     71 +        "runs": entries,
+     72 +    }
+     73 +    _write_metrics(out_dir / "metrics.csv", combined_rows)
+     74 +    (out_dir / "summary.json").write_text(
+     75 +        json.dumps(comparison, indent=2, sort_keys=True) + "\n",
+     76 +        encoding="utf-8",
+     77 +    )
+     78 +    _write_notes(out_dir / "notes.md", comparison)
+     79 +    return comparison
+     80 +
+     81 +
+     82 +def write_comparison_baseline(path: Path, comparison: dict[str, Any]) -> dict[str, Any]:
+     83 +    baseline = _comparison_baseline(comparison)
+     84 +    path.parent.mkdir(parents=True, exist_ok=True)
+     85 +    path.write_text(
+     86 +        json.dumps(baseline, indent=2, sort_keys=True) + "\n",
+     87 +        encoding="utf-8",
+     88 +    )
+     89 +    return baseline
+     90 +
+     91 +
+     92 +def compare_to_baseline(
+     93 +    comparison: dict[str, Any],
+     94 +    baseline_path: Path,
+     95 +    out_path: Path,
+     96 +) -> dict[str, Any]:
+     97 +    reference = json.loads(baseline_path.read_text(encoding="utf-8"))
+     98 +    result = compare_comparison_to_baseline(comparison, reference, baseline_path=baseline_path)
+     99 +    out_path.parent.mkdir(parents=True, exist_ok=True)
+    100 +    out_path.write_text(
+    101 +        json.dumps(result, indent=2, sort_keys=True) + "\n",
+    102 +        encoding="utf-8",
+    103 +    )
+    104 +    return result
+    105 +
+    106 +
+    107 +def compare_comparison_to_baseline(
+    108 +    comparison: dict[str, Any],
+    109 +    reference: dict[str, Any],
+    110 +    *,
+    111 +    baseline_path: Path | None = None,
+    112 +) -> dict[str, Any]:
+    113 +    candidate = _comparison_baseline(comparison)
+    114 +    mismatches = _baseline_mismatches(reference, candidate)
+    115 +    result = {
+    116 +        "status": "pass" if not mismatches else "fail",
+    117 +        "mismatches": mismatches,
+    118 +        "reference": reference,
+    119 +        "candidate": candidate,
+    120 +    }
+    121 +    if baseline_path is not None:
+    122 +        result["baseline_path"] = str(baseline_path)
+    123 +    return result
+    124 +
+    125 +
+    126 +def _comparison_baseline(comparison: dict[str, Any]) -> dict[str, Any]:
+    127 +    verdict = comparison["verdict"]
+    128 +    acceptance = verdict["hep_alpha_acceptance"]
+    129 +    return {
+    130 +        "schema_version": BASELINE_SCHEMA_VERSION,
+    131 +        "comparison_status": comparison["status"],
+    132 +        "verdict_status": verdict["status"],
+    133 +        "config_paths": [entry["config_path"] for entry in comparison["runs"]],
+    134 +        "runs": [
+    135 +            {
+    136 +                "experiment_id": entry["experiment_id"],
+    137 +                "config_path": entry["config_path"],
+    138 +                "residual_objective": entry["residual_objective"],
+    139 +                "status": entry["status"],
+    140 +                "training_steps": entry["training_steps"],
+    141 +                "invariant_count": len(entry.get("invariants") or {}),
+    142 +                "artifact_invariants": _baseline_run_artifact_invariants(entry),
+    143 +                "final_residual_loss": entry["final_residual_loss"],
+    144 +            }
+    145 +            for entry in comparison["runs"]
+    146 +        ],
+    147 +        "phase0_invariants": {
+    148 +            "passed": verdict["invariants_passed"],
+    149 +            "count": verdict["invariant_count"],
+    150 +            "failed": verdict["failed_invariants"],
+    151 +        },
+    152 +        "artifact_invariants": {
+    153 +            "passed": verdict["artifact_invariants_passed"],
+    154 +            "count": verdict["artifact_invariant_count"],
+    155 +            "failed": verdict["failed_artifact_invariants"],
+    156 +        },
+    157 +        "hep": {
+    158 +            "best_alpha_by_loss": _baseline_hep_alpha(verdict["best_hep_alpha_by_loss"]),
+    159 +            "acceptance": {
+    160 +                "status": acceptance["status"],
+    161 +                "max_logit_delta_from_ordinary": acceptance[
+    162 +                    "max_logit_delta_from_ordinary"
+    163 +                ],
+    164 +                "min_loss_improvement_from_alpha0": acceptance[
+    165 +                    "min_loss_improvement_from_alpha0"
+    166 +                ],
+    167 +                "candidate_count": acceptance["candidate_count"],
+    168 +                "rejected_count": acceptance["rejected_count"],
+    169 +                "baseline_alpha0": _baseline_hep_alpha(acceptance["baseline_alpha0"]),
+    170 +                "accepted_alpha": _baseline_hep_alpha(acceptance["accepted_alpha"]),
+    171 +            },
+    172 +        },
+    173 +    }
+    174 +
+    175 +
+    176 +def _baseline_mismatches(
+    177 +    reference: dict[str, Any],
+    178 +    candidate: dict[str, Any],
+    179 +    *,
+    180 +    prefix: str = "baseline",
+    181 +) -> list[dict[str, Any]]:
+    182 +    mismatches: list[dict[str, Any]] = []
+    183 +    keys = sorted(set(reference) | set(candidate))
+    184 +    for key in keys:
+    185 +        field = f"{prefix}.{key}"
+    186 +        expected = reference.get(key)
+    187 +        actual = candidate.get(key)
+    188 +        if isinstance(expected, dict) and isinstance(actual, dict):
+    189 +            mismatches.extend(_baseline_mismatches(expected, actual, prefix=field))
+    190 +        elif expected != actual:
+    191 +            mismatches.append({"field": field, "expected": expected, "actual": actual})
+    192 +    return mismatches
+    193 +
+    194 +
+    195 +def _read_metrics(path: Path) -> list[dict[str, str]]:
+    196 +    with path.open("r", encoding="utf-8", newline="") as handle:
+    197 +        return list(csv.DictReader(handle))
+    198 +
+    199 +
+    200 +def _comparison_entry(
+    201 +    config_path: Path,
+    202 +    run_dir: Path,
+    203 +    summary: dict[str, Any],
+    204 +    metric_rows: list[dict[str, str]],
+    205 +) -> dict[str, Any]:
+    206 +    initial = _first_metric(metric_rows, "residual_loss")
+    207 +    final = _last_metric(metric_rows, "residual_loss")
+    208 +    loss_delta = None if initial is None or final is None else final - initial
+    209 +    loss_ratio = None
+    210 +    if initial not in {None, 0.0} and final is not None:
+    211 +        loss_ratio = final / initial
+    212 +    phase0 = summary.get("phase0") or {}
+    213 +    return {
+    214 +        "config_path": str(config_path),
+    215 +        "run_dir": str(run_dir),
+    216 +        "experiment_id": summary.get("experiment_id"),
+    217 +        "status": summary.get("status"),
+    218 +        "error": summary.get("error"),
+    219 +        "residual_objective": phase0.get("residual_objective", ""),
+    220 +        "dataset": phase0.get("dataset"),
+    221 +        "num_columns": phase0.get("num_columns"),
+    222 +        "atoms_per_column": phase0.get("atoms_per_column"),
+    223 +        "top_k": phase0.get("top_k"),
+    224 +        "support_router": phase0.get("support_router", "linear"),
+    225 +        "contextual_router_hidden_dim": phase0.get("contextual_router_hidden_dim"),
+    226 +        "training_steps": phase0.get("training_steps"),
+    227 +        "initial_residual_loss": initial,
+    228 +        "final_residual_loss": final,
+    229 +        "residual_loss_delta": loss_delta,
+    230 +        "residual_loss_ratio": loss_ratio,
+    231 +        "base_loss": phase0.get("base_loss"),
+    232 +        "zero_init_loss": phase0.get("zero_init_loss"),
+    233 +        "pinned_support": phase0.get("pinned_support", False),
+    234 +        "support_stress": phase0.get("support_stress", False),
+    235 +        "support_stress_preset": phase0.get("support_stress_preset", False),
+    236 +        "hep_update_clip_norm": phase0.get("hep_update_clip_norm"),
+    237 +        "hep_settling_objective": phase0.get("hep_settling_objective", "residual_adapter"),
+    238 +        "support_instability": phase0.get("support_instability") or {},
+    239 +        "support_audit": phase0.get("support_audit") or {},
+    240 +        "hep_alpha_sweep": phase0.get("hep_alpha_sweep") or [],
+    241 +        "invariants": phase0.get("invariants") or {},
+    242 +        "artifact_invariants": summary.get("artifact_invariants") or {},
+    243 +    }
+    244 +
+    245 +
+    246 +def _comparison_verdict(
+    247 +    entries: list[dict[str, Any]],
+    248 +    status: str,
+    249 +    *,
+    250 +    hep_max_logit_delta: float = DEFAULT_HEP_MAX_LOGIT_DELTA,
+    251 +    hep_min_loss_improvement: float = DEFAULT_HEP_MIN_LOSS_IMPROVEMENT,
+    252 +) -> dict[str, Any]:
+    253 +    failed_invariants = []
+    254 +    invariant_count = 0
+    255 +    failed_artifact_invariants = []
+    256 +    artifact_invariant_count = 0
+    257 +    for entry in entries:
+    258 +        invariants = entry.get("invariants") or {}
+    259 +        invariant_count += len(invariants)
+    260 +        for name, value in sorted(invariants.items()):
+    261 +            if not value:
+    262 +                failed_invariants.append(
+    263 +                    {"experiment_id": entry["experiment_id"], "invariant": name}
+    264 +                )
+    265 +        artifact_invariants = entry.get("artifact_invariants")
+    266 +        artifact_invariant_count += len(REQUIRED_ARTIFACT_INVARIANTS)
+    267 +        for name in REQUIRED_ARTIFACT_INVARIANTS:
+    268 +            if (
+    269 +                not isinstance(artifact_invariants, dict)
+    270 +                or artifact_invariants.get(name) is not True
+    271 +            ):
+    272 +                failed_artifact_invariants.append(
+    273 +                    {"experiment_id": entry["experiment_id"], "artifact": name}
+    274 +                )
+    275 +
+    276 +    best_hep = _best_hep_alpha(entries)
+    277 +    hep_acceptance = _hep_alpha_acceptance(
+    278 +        entries,
+    279 +        max_logit_delta=hep_max_logit_delta,
+    280 +        min_loss_improvement=hep_min_loss_improvement,
+    281 +    )
+    282 +    invariants_passed = bool(invariant_count) and not failed_invariants
+    283 +    artifact_invariants_passed = (
+    284 +        bool(artifact_invariant_count) and not failed_artifact_invariants
+    285 +    )
+    286 +    verdict_status = (
+    287 +        "pass"
+    288 +        if status == "ok" and invariants_passed and artifact_invariants_passed
+    289 +        else "fail"
+    290 +    )
+    291 +    return {
+    292 +        "status": verdict_status,
+    293 +        "invariants_passed": invariants_passed,
+    294 +        "invariant_count": invariant_count,
+    295 +        "failed_invariants": failed_invariants,
+    296 +        "artifact_invariants_passed": artifact_invariants_passed,
+    297 +        "artifact_invariant_count": artifact_invariant_count,
+    298 +        "failed_artifact_invariants": failed_artifact_invariants,
+    299 +        "best_hep_alpha_by_loss": best_hep,
+    300 +        "hep_alpha_acceptance": hep_acceptance,
+    301 +    }
+    302 +
+    303 +
+    304 +def _best_hep_alpha(entries: list[dict[str, Any]]) -> dict[str, Any] | None:
+    305 +    candidates = []
+    306 +    for entry in entries:
+    307 +        for sweep_entry in entry.get("hep_alpha_sweep") or []:
+    308 +            loss = sweep_entry.get("loss")
+    309 +            if loss is None:
+    310 +                continue
+    311 +            candidates.append(
+    312 +                {
+    313 +                    "experiment_id": entry["experiment_id"],
+    314 +                    "alpha": float(sweep_entry["alpha"]),
+    315 +                    "loss": float(loss),
+    316 +                    "max_logit_delta_from_ordinary": float(
+    317 +                        sweep_entry["max_logit_delta_from_ordinary"]
+    318 +                    ),
+    319 +                }
+    320 +            )
+    321 +    if not candidates:
+    322 +        return None
+    323 +    return min(candidates, key=lambda candidate: candidate["loss"])
+    324 +
+    325 +
+    326 +def _hep_alpha_acceptance(
+    327 +    entries: list[dict[str, Any]],
+    328 +    *,
+    329 +    max_logit_delta: float,
+    330 +    min_loss_improvement: float,
+    331 +) -> dict[str, Any]:
+    332 +    baselines = []
+    333 +    candidates = []
+    334 +    for entry in entries:
+    335 +        sweep = entry.get("hep_alpha_sweep") or []
+    336 +        baseline = _alpha0_baseline(entry, sweep)
+    337 +        if baseline is not None:
+    338 +            baselines.append(baseline)
+    339 +        for sweep_entry in sweep:
+    340 +            alpha = float(sweep_entry["alpha"])
+    341 +            loss = sweep_entry.get("loss")
+    342 +            if alpha == 0.0 or loss is None or baseline is None:
+    343 +                continue
+    344 +            candidate = {
+    345 +                "experiment_id": entry["experiment_id"],
+    346 +                "alpha": alpha,
+    347 +                "loss": float(loss),
+    348 +                "loss_improvement_from_alpha0": baseline["loss"] - float(loss),
+    349 +                "max_logit_delta_from_ordinary": float(
+    350 +                    sweep_entry["max_logit_delta_from_ordinary"]
+    351 +                ),
+    352 +                "alpha0_loss": baseline["loss"],
+    353 +            }
+    354 +            candidate["accepted"] = (
+    355 +                candidate["loss_improvement_from_alpha0"] > min_loss_improvement
+    356 +                and candidate["max_logit_delta_from_ordinary"] <= max_logit_delta
+    357 +            )
+    358 +            candidates.append(candidate)
+    359 +
+    360 +    accepted_candidates = [candidate for candidate in candidates if candidate["accepted"]]
+    361 +    accepted_alpha = None
+    362 +    if accepted_candidates:
+    363 +        accepted_alpha = min(accepted_candidates, key=lambda candidate: candidate["loss"])
+    364 +    status = "accepted" if accepted_alpha else "no_accepted_alpha"
+    365 +    if not candidates:
+    366 +        status = "no_nonzero_hep_candidates"
+    367 +
+    368 +    return {
+    369 +        "status": status,
+    370 +        "max_logit_delta_from_ordinary": max_logit_delta,
+    371 +        "min_loss_improvement_from_alpha0": min_loss_improvement,
+    372 +        "baseline_alpha0": (
+    373 +            min(baselines, key=lambda baseline: baseline["loss"]) if baselines else None
+    374 +        ),
+    375 +        "accepted_alpha": accepted_alpha,
+    376 +        "candidate_count": len(candidates),
+    377 +        "rejected_count": len(candidates) - len(accepted_candidates),
+    378 +        "candidates": sorted(
+    379 +            candidates,
+    380 +            key=lambda candidate: (candidate["experiment_id"], candidate["alpha"]),
+    381 +        ),
+    382 +    }
+    383 +
+    384 +
+    385 +def _alpha0_baseline(
+    386 +    entry: dict[str, Any],
+    387 +    sweep: list[dict[str, Any]],
+    388 +) -> dict[str, Any] | None:
+    389 +    alpha0_entries = [
+    390 +        sweep_entry
+    391 +        for sweep_entry in sweep
+    392 +        if float(sweep_entry.get("alpha", -1.0)) == 0.0
+    393 +        and sweep_entry.get("loss") is not None
+    394 +    ]
+    395 +    if not alpha0_entries:
+    396 +        return None
+    397 +    baseline = min(alpha0_entries, key=lambda sweep_entry: float(sweep_entry["loss"]))
+    398 +    return {
+    399 +        "experiment_id": entry["experiment_id"],
+    400 +        "alpha": 0.0,
+    401 +        "loss": float(baseline["loss"]),
+    402 +        "max_logit_delta_from_ordinary": float(
+    403 +            baseline["max_logit_delta_from_ordinary"]
+    404 +        ),
+    405 +    }
+    406 +
+    407 +
+    408 +def _combined_rows(
+    409 +    entry: dict[str, Any],
+    410 +    rows: list[dict[str, str]],
+    411 +) -> list[dict[str, Any]]:
+    412 +    combined = []
+    413 +    for row in rows:
+    414 +        enriched = dict(row)
+    415 +        enriched["run_dir"] = entry["run_dir"]
+    416 +        enriched["config_path"] = entry["config_path"]
+    417 +        combined.append(enriched)
+    418 +    return combined
+    419 +
+    420 +
+    421 +def _first_metric(rows: list[dict[str, str]], field: str) -> float | None:
+    422 +    for row in rows:
+    423 +        parsed = _parse_float(row.get(field))
+    424 +        if parsed is not None:
+    425 +            return parsed
+    426 +    return None
+    427 +
+    428 +
+    429 +def _last_metric(rows: list[dict[str, str]], field: str) -> float | None:
+    430 +    for row in reversed(rows):
+    431 +        parsed = _parse_float(row.get(field))
+    432 +        if parsed is not None:
+    433 +            return parsed
+    434 +    return None
+    435 +
+    436 +
+    437 +def _parse_float(value: str | None) -> float | None:
+    438 +    if value in {"", None}:
+    439 +        return None
+    440 +    return float(value)
+    441 +
+    442 +
+    443 +def _write_metrics(path: Path, rows: list[dict[str, Any]]) -> None:
+    444 +    if not rows:
+    445 +        path.write_text("", encoding="utf-8")
+    446 +        return
+    447 +    with path.open("w", encoding="utf-8", newline="") as handle:
+    448 +        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+    449 +        writer.writeheader()
+    450 +        writer.writerows(rows)
+    451 +
+    452 +
+    453 +def _write_notes(path: Path, comparison: dict[str, Any]) -> None:
+    454 +    verdict = comparison["verdict"]
+    455 +    lines = [
+    456 +        "# Phase 0 Comparison",
+    457 +        "",
+    458 +        f"- Status: `{comparison['status']}`",
+    459 +        f"- Verdict: `{verdict['status']}`",
+    460 +        f"- Phase 0 invariants passed: `{verdict['invariants_passed']}`",
+    461 +        f"- Artifact invariants passed: `{verdict['artifact_invariants_passed']}`",
+    462 +        f"- Best HEP alpha by loss: `{verdict['best_hep_alpha_by_loss']}`",
+    463 +        f"- HEP alpha acceptance: `{verdict['hep_alpha_acceptance']['status']}`",
+    464 +        "",
+    465 +        "## Runs",
+    466 +        "",
+    467 +    ]
+    468 +    for entry in comparison["runs"]:
+    469 +        lines.append(
+    470 +            "- "
+    471 +            f"`{entry['experiment_id']}`: status `{entry['status']}`, "
+    472 +            f"objective `{entry['residual_objective']}`, "
+    473 +            f"final residual loss `{entry['final_residual_loss']}`"
+    474 +        )
+    475 +    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    476 +
+    477 +
+    478 +def _baseline_run_artifact_invariants(entry: dict[str, Any]) -> dict[str, Any]:
+    479 +    invariants = entry.get("artifact_invariants") or {}
+    480 +    failed = [
+    481 +        name
+    482 +        for name in REQUIRED_ARTIFACT_INVARIANTS
+    483 +        if invariants.get(name) is not True
+    484 +    ]
+    485 +    return {
+    486 +        "passed": not failed,
+    487 +        "count": len(REQUIRED_ARTIFACT_INVARIANTS),
+    488 +        "failed": failed,
+    489 +    }
+    490 +
+    491 +
+    492 +def _baseline_hep_alpha(entry: dict[str, Any] | None) -> dict[str, Any] | None:
+    493 +    if entry is None:
+    494 +        return None
+    495 +    keys = [
+    496 +        "experiment_id",
+    497 +        "alpha",
+    498 +        "loss",
+    499 +        "max_logit_delta_from_ordinary",
+    500 +        "loss_improvement_from_alpha0",
+    501 +    ]
+    502 +    return {key: entry[key] for key in keys if key in entry}
+    503 +
+    504 +
+    505 +def main() -> None:
+    506 +    parser = argparse.ArgumentParser(description="Run a Phase 0 comparison.")
+    507 +    parser.add_argument(
+    508 +        "--config",
+    509 +        dest="configs",
+    510 +        action="append",
+    511 +        type=Path,
+    512 +        help="Config path. May be passed more than once.",
+    513 +    )
+    514 +    parser.add_argument("--out", default=Path("results/comparisons/phase0"), type=Path)
+    515 +    parser.add_argument("--baseline-out", type=Path)
+    516 +    parser.add_argument("--baseline-reference", type=Path)
+    517 +    parser.add_argument(
+    518 +        "--hep-max-logit-delta",
+    519 +        type=float,
+    520 +        default=DEFAULT_HEP_MAX_LOGIT_DELTA,
+    521 +    )
+    522 +    parser.add_argument(
+    523 +        "--hep-min-loss-improvement",
+    524 +        type=float,
+    525 +        default=DEFAULT_HEP_MIN_LOSS_IMPROVEMENT,
+    526 +    )
+    527 +    args = parser.parse_args()
+    528 +    comparison = run_comparison(
+    529 +        args.configs or DEFAULT_CONFIGS,
+    530 +        args.out,
+    531 +        hep_max_logit_delta=args.hep_max_logit_delta,
+    532 +        hep_min_loss_improvement=args.hep_min_loss_improvement,
+    533 +    )
+    534 +    if args.baseline_out is not None:
+    535 +        write_comparison_baseline(args.baseline_out, comparison)
+    536 +    if args.baseline_reference is not None:
+    537 +        result = compare_to_baseline(
+    538 +            comparison,
+    539 +            args.baseline_reference,
+    540 +            args.out / "baseline_comparison.json",
+    541 +        )
+    542 +        if result["status"] != "pass":
+    543 +            print(json.dumps(comparison, indent=2, sort_keys=True))
+    544 +            raise SystemExit(1)
+    545 +    print(json.dumps(comparison, indent=2, sort_keys=True))
+    546 +    if comparison["status"] != "ok" or comparison["verdict"]["status"] != "pass":
+    547 +        raise SystemExit(1)
+    548 +
+    549 +
+    550 +if __name__ == "__main__":
+    551 +    main()
+
+  └ relaleap-FabricPC/relaleap_fabricpc/experiments/run.py (+353 -0)
+      1 +"""Minimal config-driven Phase 0 experiment runner."""
+      2 +
+      3 +from __future__ import annotations
+      4 +
+      5 +import argparse
+      6 +import csv
+      7 +import json
+      8 +import platform
+      9 +import time
+     10 +from pathlib import Path
+     11 +from typing import Any
+     12 +
+     13 +import jax
+     14 +
+     15 +from relaleap_fabricpc.smoke import run_phase0_smoke
+     16 +
+     17 +
+     18 +def _load_backend_info() -> dict[str, Any]:
+     19 +    try:
+     20 +        import fabricpc
+     21 +    except Exception as exc:  # pragma: no cover - environment dependent
+     22 +        fabricpc_file = None
+     23 +        fabricpc_error = repr(exc)
+     24 +    else:
+     25 +        fabricpc_file = fabricpc.__file__
+     26 +        fabricpc_error = None
+     27 +
+     28 +    backend = jax.default_backend()
+     29 +    return {
+     30 +        "jax_available": True,
+     31 +        "jax_version": jax.__version__,
+     32 +        "backend": backend,
+     33 +        "device": backend,
+     34 +        "cuda_available": backend == "gpu",
+     35 +        "jax_devices": [str(device) for device in jax.devices()],
+     36 +        "fabricpc_file": fabricpc_file,
+     37 +        "fabricpc_error": fabricpc_error,
+     38 +    }
+     39 +
+     40 +
+     41 +def _read_config(path: Path) -> dict[str, Any]:
+     42 +    text = path.read_text(encoding="utf-8")
+     43 +    try:
+     44 +        import yaml
+     45 +
+     46 +        loaded = yaml.safe_load(text)
+     47 +        return loaded or {}
+     48 +    except ModuleNotFoundError:
+     49 +        return _read_simple_yaml(text)
+     50 +
+     51 +
+     52 +def _read_simple_yaml(text: str) -> dict[str, Any]:
+     53 +    root: dict[str, Any] = {}
+     54 +    stack: list[tuple[int, dict[str, Any]]] = [(-1, root)]
+     55 +    for raw_line in text.splitlines():
+     56 +        if not raw_line.strip() or raw_line.lstrip().startswith("#"):
+     57 +            continue
+     58 +        indent = len(raw_line) - len(raw_line.lstrip(" "))
+     59 +        key, sep, value = raw_line.strip().partition(":")
+     60 +        if not sep:
+     61 +            continue
+     62 +        while stack and indent <= stack[-1][0]:
+     63 +            stack.pop()
+     64 +        parent = stack[-1][1]
+     65 +        if value.strip() == "":
+     66 +            child: dict[str, Any] = {}
+     67 +            parent[key] = child
+     68 +            stack.append((indent, child))
+     69 +        else:
+     70 +            parent[key] = _parse_scalar(value.strip())
+     71 +    return root
+     72 +
+     73 +
+     74 +def _parse_scalar(value: str) -> Any:
+     75 +    lowered = value.lower()
+     76 +    if lowered in {"true", "false"}:
+     77 +        return lowered == "true"
+     78 +    if lowered in {"null", "none"}:
+     79 +        return None
+     80 +    try:
+     81 +        return int(value)
+     82 +    except ValueError:
+     83 +        pass
+     84 +    try:
+     85 +        return float(value)
+     86 +    except ValueError:
+     87 +        return value.strip("\"'")
+     88 +
+     89 +
+     90 +def run(config_path: Path, out_dir: Path) -> dict[str, Any]:
+     91 +    config = _read_config(config_path)
+     92 +    run_cfg = config.get("run", {})
+     93 +    seed = int(run_cfg.get("seed", 1))
+     94 +    max_steps = int(run_cfg.get("max_steps", 10))
+     95 +    experiment_id = str(run_cfg.get("experiment_id", "smoke"))
+     96 +
+     97 +    out_dir.mkdir(parents=True, exist_ok=True)
+     98 +    backend_info = _load_backend_info()
+     99 +    start = time.time()
+    100 +
+    101 +    phase0: dict[str, Any] | None = None
+    102 +    rows: list[dict[str, Any]]
+    103 +    status = "ok"
+    104 +    error: str | None = None
+    105 +    try:
+    106 +        phase0_result = run_phase0_smoke(config)
+    107 +        phase0 = phase0_result.to_summary()
+    108 +        rows = _build_phase0_rows(
+    109 +            phase0_result.to_metric_rows(),
+    110 +            max_steps=max_steps,
+    111 +            seed=seed,
+    112 +            experiment_id=experiment_id,
+    113 +            device=backend_info["device"],
+    114 +        )
+    115 +        if not all(phase0_result.invariants.values()):
+    116 +            status = "failed"
+    117 +            error = "Phase 0 invariant failure"
+    118 +    except Exception as exc:
+    119 +        status = "failed"
+    120 +        error = f"{type(exc).__name__}: {exc}"
+    121 +        rows = _build_failed_rows(
+    122 +            max_steps=max_steps,
+    123 +            seed=seed,
+    124 +            experiment_id=experiment_id,
+    125 +            device=backend_info["device"],
+    126 +            error=error,
+    127 +        )
+    128 +
+    129 +    for row in rows:
+    130 +        row["status"] = status
+    131 +
+    132 +    _write_metrics(out_dir / "metrics.csv", rows)
+    133 +    final_smoke_loss = _final_loss(rows)
+    134 +    summary = {
+    135 +        "experiment_id": experiment_id,
+    136 +        "seed": seed,
+    137 +        "config_path": str(config_path),
+    138 +        "out_dir": str(out_dir),
+    139 +        "status": status,
+    140 +        "error": error,
+    141 +        "final_smoke_loss": final_smoke_loss,
+    142 +        "runtime_seconds": round(time.time() - start, 4),
+    143 +        "platform": platform.platform(),
+    144 +        "phase0": phase0,
+    145 +        **backend_info,
+    146 +    }
+    147 +    (out_dir / "summary.json").write_text(
+    148 +        json.dumps(summary, indent=2, sort_keys=True) + "\n",
+    149 +        encoding="utf-8",
+    150 +    )
+    151 +    (out_dir / "config.yaml").write_text(
+    152 +        config_path.read_text(encoding="utf-8"),
+    153 +        encoding="utf-8",
+    154 +    )
+    155 +    _write_notes(out_dir / "notes.md", experiment_id, summary)
+    156 +
+    157 +    required = config.get("outputs", {})
+    158 +    artifact_invariants = {
+    159 +        "summary_json": not required.get("require_summary_json", True)
+    160 +        or (out_dir / "summary.json").is_file(),
+    161 +        "metrics_csv": not required.get("require_metrics_csv", True)
+    162 +        or (out_dir / "metrics.csv").is_file(),
+    163 +        "notes_md": not required.get("require_notes_md", True)
+    164 +        or (out_dir / "notes.md").is_file(),
+    165 +    }
+    166 +    summary["artifact_invariants"] = artifact_invariants
+    167 +    if not all(artifact_invariants.values()):
+    168 +        summary["status"] = "failed"
+    169 +        summary["error"] = summary["error"] or "Required artifact missing"
+    170 +    (out_dir / "summary.json").write_text(
+    171 +        json.dumps(summary, indent=2, sort_keys=True) + "\n",
+    172 +        encoding="utf-8",
+    173 +    )
+    174 +    return summary
+    175 +
+    176 +
+    177 +def _build_phase0_rows(
+    178 +    metric_rows: list[dict[str, Any]],
+    179 +    *,
+    180 +    max_steps: int,
+    181 +    seed: int,
+    182 +    experiment_id: str,
+    183 +    device: str,
+    184 +) -> list[dict[str, Any]]:
+    185 +    rows: list[dict[str, Any]] = []
+    186 +    for source in metric_rows:
+    187 +        if int(source["step"]) > max_steps:
+    188 +            continue
+    189 +        rows.append(
+    190 +            {
+    191 +                "step": source["step"],
+    192 +                "seed": seed,
+    193 +                "experiment_id": experiment_id,
+    194 +                "phase": source["phase"],
+    195 +                "residual_objective": source["residual_objective"],
+    196 +                "base_loss": _format_metric(source["base_loss"]),
+    197 +                "residual_loss": _format_metric(source["residual_loss"]),
+    198 +                "zero_init_loss": _format_metric(source["zero_init_loss"]),
+    199 +                "residual_parameter_delta": _format_metric(
+    200 +                    source["residual_parameter_delta"]
+    201 +                ),
+    202 +                "max_zero_init_logit_delta": _format_metric(
+    203 +                    source["max_zero_init_logit_delta"]
+    204 +                ),
+    205 +                "max_hep_alpha0_logit_delta": _format_metric(
+    206 +                    source["max_hep_alpha0_logit_delta"]
+    207 +                ),
+    208 +                "hep_alpha": _format_optional_metric(source.get("hep_alpha")),
+    209 +                "hep_loss": _format_optional_metric(source.get("hep_loss")),
+    210 +                "max_hep_logit_delta_from_ordinary": _format_optional_metric(
+    211 +                    source.get("max_hep_logit_delta_from_ordinary")
+    212 +                ),
+    213 +                "hep_support_change_fraction": _format_optional_metric(
+    214 +                    source.get("hep_support_change_fraction")
+    215 +                ),
+    216 +                "hep_pinned_vs_repicked_logit_delta": _format_optional_metric(
+    217 +                    source.get("hep_pinned_vs_repicked_logit_delta")
+    218 +                ),
+    219 +                "device": device,
+    220 +                "error": "",
+    221 +            }
+    222 +        )
+    223 +    return rows
+    224 +
+    225 +
+    226 +def _build_failed_rows(
+    227 +    *,
+    228 +    max_steps: int,
+    229 +    seed: int,
+    230 +    experiment_id: str,
+    231 +    device: str,
+    232 +    error: str,
+    233 +) -> list[dict[str, Any]]:
+    234 +    return [
+    235 +        {
+    236 +            "step": 0,
+    237 +            "seed": seed,
+    238 +            "experiment_id": experiment_id,
+    239 +            "phase": "failed",
+    240 +            "residual_objective": "",
+    241 +            "base_loss": "",
+    242 +            "residual_loss": "",
+    243 +            "zero_init_loss": "",
+    244 +            "residual_parameter_delta": "",
+    245 +            "max_zero_init_logit_delta": "",
+    246 +            "max_hep_alpha0_logit_delta": "",
+    247 +            "hep_alpha": "",
+    248 +            "hep_loss": "",
+    249 +            "max_hep_logit_delta_from_ordinary": "",
+    250 +            "hep_support_change_fraction": "",
+    251 +            "hep_pinned_vs_repicked_logit_delta": "",
+    252 +            "device": device,
+    253 +            "error": error,
+    254 +            "max_steps": max_steps,
+    255 +        }
+    256 +    ]
+    257 +
+    258 +
+    259 +def _format_metric(value: Any) -> str:
+    260 +    return f"{float(value):.8f}"
+    261 +
+    262 +
+    263 +def _format_optional_metric(value: Any) -> str:
+    264 +    if value in {"", None}:
+    265 +        return ""
+    266 +    return _format_metric(value)
+    267 +
+    268 +
+    269 +def _final_loss(rows: list[dict[str, Any]]) -> float | None:
+    270 +    for row in reversed(rows):
+    271 +        value = row.get("residual_loss")
+    272 +        if value not in {"", None}:
+    273 +            return float(value)
+    274 +    return None
+    275 +
+    276 +
+    277 +def _write_metrics(path: Path, rows: list[dict[str, Any]]) -> None:
+    278 +    with path.open("w", encoding="utf-8", newline="") as handle:
+    279 +        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+    280 +        writer.writeheader()
+    281 +        writer.writerows(rows)
+    282 +
+    283 +
+    284 +def _write_notes(path: Path, experiment_id: str, summary: dict[str, Any]) -> None:
+    285 +    phase0 = summary.get("phase0") or {}
+    286 +    invariants = phase0.get("invariants") or {}
+    287 +    hep_sweep = phase0.get("hep_alpha_sweep") or []
+    288 +    invariant_lines = [
+    289 +        f"- {name}: `{value}`" for name, value in sorted(invariants.items())
+    290 +    ]
+    291 +    if not invariant_lines:
+    292 +        invariant_lines = ["- Phase 0 invariants: `not run`"]
+    293 +    hep_lines = [
+    294 +        (
+    295 +            f"- alpha `{entry['alpha']}`: loss `{entry['loss']}`, "
+    296 +            f"max ordinary-logit delta `{entry['max_logit_delta_from_ordinary']}`, "
+    297 +            "support-change fraction "
+    298 +            f"`{entry.get('support_change_fraction', 'not measured')}`, "
+    299 +            "pinned-vs-repicked delta "
+    300 +            f"`{entry.get('pinned_vs_repicked_logit_delta', 'not measured')}`"
+    301 +        )
+    302 +        for entry in hep_sweep
+    303 +    ]
+    304 +    if not hep_lines:
+    305 +        hep_lines = ["- HEP alpha sweep: `not configured`"]
+    306 +
+    307 +    path.write_text(
+    308 +        "\n".join(
+    309 +            [
+    310 +                f"# {experiment_id}",
+    311 +                "",
+    312 +                "RelaLeap FabricPC Phase 0 smoke run.",
+    313 +                "",
+    314 +                f"- Status: `{summary['status']}`",
+    315 +                f"- Error: `{summary['error'] or 'none'}`",
+    316 +                f"- JAX backend: `{summary['backend']}`",
+    317 +                f"- CUDA available: `{summary['cuda_available']}`",
+    318 +                f"- FabricPC file: `{summary.get('fabricpc_file')}`",
+    319 +                f"- Final smoke loss: `{summary['final_smoke_loss']}`",
+    320 +                f"- Residual objective: `{phase0.get('residual_objective', 'not run')}`",
+    321 +                f"- Pinned support: `{phase0.get('pinned_support', 'not run')}`",
+    322 +                f"- Support stress: `{phase0.get('support_stress', 'not run')}`",
+    323 +                f"- Base loss: `{phase0.get('base_loss', 'not run')}`",
+    324 +                f"- Residual training steps: `{phase0.get('training_steps', 'not run')}`",
+    325 +                f"- Residual final loss: `{phase0.get('post_step_loss', 'not run')}`",
+    326 +                "",
+    327 +                "## Invariants",
+    328 +                "",
+    329 +                *invariant_lines,
+    330 +                "",
+    331 +                "## HEP Alpha Sweep",
+    332 +                "",
+    333 +                *hep_lines,
+    334 +                "",
+    335 +            ]
+    336 +        ),
+    337 +        encoding="utf-8",
+    338 +    )
+    339 +
+    340 +
+    341 +def main() -> None:
+    342 +    parser = argparse.ArgumentParser(description="Run a RelaLeap FabricPC config.")
+    343 +    parser.add_argument("--config", required=True, type=Path)
+    344 +    parser.add_argument("--out", default=Path("results/runs/smoke"), type=Path)
+    345 +    args = parser.parse_args()
+    346 +    summary = run(args.config, args.out)
+    347 +    print(json.dumps(summary, indent=2, sort_keys=True))
+    348 +    if summary["status"] != "ok":
+    349 +        raise SystemExit(1)
+    350 +
+    351 +
+    352 +if __name__ == "__main__":
+    353 +    main()
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The run, compare, and artifact-check commands are added. I’m adding README usage instructions and focused tests before running the suite.
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The patch tool hit the same sandbox setup failure while reading README.md. I’ll retry in smaller patches; if it keeps failing, I’ll use the available shell path only for these workspace file writes and keep the edits scoped.
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The patch tool is still failing before it can read a workspace file. I’m switching to a scoped Python file-write command for the pending workspace edits because implementation cannot proceed through apply_patch in this sandbox state.
+
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python - <<'PY' ... this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python - <<'PY'
+  │ from pathlib import Path
+  │ root = Path('/home/ni/repos/fpc/relaleap-FabricPC')
+  │ … +404 lines
+  └ (no output)
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The pending README, tests, and work-plan updates are now written. I’m running compile and tests in py3 to catch syntax, import, and behavior issues.
+
+• Running /home/ni/repos/fpc/py3/bin/python -m py_compile relaleap_fabricpc/*.py relaleap_fabricpc/experiments/*.py
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python -m py_compile relaleap_fabricpc/*.py relale... this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python -m py_compile relaleap_fabricpc/*.py relaleap_fabricpc/experiments/*.py
+  └ (no output)
+
+✔ You approved codex to run git -C relaleap-FabricPC status --short this time
+
+• Ran git -C relaleap-FabricPC status --short
+  └  M README.md
+    ?? configs/
+    … +2 lines (ctrl + t to view transcript)
+    ?? relaleap_fabricpc/
+    ?? tests/
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• Syntax checks passed. The target repo now has only the expected new/modified files, and I’m running the focused test suite.
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python -m pytest this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python -m pytest
+  └ ============================= test session starts ==============================
+    platform linux -- Python 3.12.3, pytest-9.1.0, pluggy-1.6.0
+    … +1219 lines (ctrl + t to view transcript)
+    FAILED tests/test_smoke.py::test_contextual_causal_router_ignores_future_positions
+    ========================= 8 failed, 2 passed in 2.67s ==========================
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The failures are environmental, not model logic yet: JAX is selecting the CUDA backend and failing to initialize cuDNN before any computation. I’m adding a local CPU-default JAX setup in this repo, using setdefault so users can still override the platform explicitly.
+
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python - <<'PY' ... this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python - <<'PY'
+  │ from pathlib import Path
+  │ root = Path('/home/ni/repos/fpc/relaleap-FabricPC')
+  │ … +56 lines
+  └ (no output)
+
+✔ You approved codex to run sed -n '1,40p' relaleap_fabricpc/fabricpc_nodes.py this time
+
+✔ You approved codex to run sed -n '1,40p' relaleap_fabricpc/experiments/run.py this time
+
+✔ You approved codex to run sed -n '1,40p' relaleap_fabricpc/smoke.py this time
+
+• Explored
+  └ Read fabricpc_nodes.py, smoke.py, run.py
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python -c "import os; print('platforms_before', os... this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python -c "import os; print('platforms_before', os.environ.get('JAX_PLATFORMS')); import relaleap_fabricpc.jax_setup as s; s.configure_jax(); import jax; print('backend', jax.default_backend())"
+  └ platforms_before None
+    backend cpu
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The CPU-default setup works for direct imports. I’m rerunning the tests to see the next real issues.
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python -m pytest this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python -m pytest
+  └ ============================= test session starts ==============================
+    platform linux -- Python 3.12.3, pytest-9.1.0, pluggy-1.6.0
+    … +9 lines (ctrl + t to view transcript)
+
+    ============================= 10 passed in 11.18s ==============================
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The focused tests pass on CPU. I’m running the actual default Phase 0 comparison command now, which is a fuller integration check than the reduced test configs.
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python -m relaleap_fabricpc.experiments.compare --... this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python -m relaleap_fabricpc.experiments.compare --out results/comparisons/phase0
+  └ {
+      "loss_scale_note": "Residual objectives may use different loss scales; compare each trajectory against its own initial loss.",
+    … +319 lines (ctrl + t to view transcript)
+      }
+    }
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The default comparison passes and wrote run artifacts under results/comparisons/phase0. I’m checking those artifacts with the new checker and then I’ll add ignores for generated results and caches so the repo stays clean around source changes.
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python -m relaleap_fabricpc.experiments.check_arti... this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python -m relaleap_fabricpc.experiments.check_artifacts --comparison-dir results/comparisons/phase0
+  └ {
+      "artifact_invariants": {
+    … +68 lines (ctrl + t to view transcript)
+      "verdict_status": "pass"
+    }
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python - <<'PY' ... this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python - <<'PY'
+  │ from pathlib import Path
+  │ root = Path('/home/ni/repos/fpc/relaleap-FabricPC')
+  │ … +27 lines
+  └ (no output)
+
+• Exploring
+  └ List relaleap-FabricPC
+
+✔ You approved codex to run find relaleap-FabricPC -maxdepth 3 -type f | sort this time
+
+• Explored
+  └ List relaleap-FabricPC
+
+✔ You approved codex to run git -C relaleap-FabricPC status --short --ignored this time
+
+• Ran git -C relaleap-FabricPC status --short --ignored
+  └  M README.md
+    ?? .gitignore
+    … +8 lines (ctrl + t to view transcript)
+    !! results/
+    !! tests/__pycache__/
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• Generated results and Python caches are ignored now. I’m doing a final diff and source scan to catch obvious mistakes, especially in docs and command surfaces.
+
+• Running git -C relaleap-FabricPC diff --stat
+
+• Running git -C relaleap-FabricPC diff -- README.md docs/work-plans/20260702-codex-singbuntu24-work-plan.md docs/work-plans/20260702-codex-singbuntu24-work-log.md
+
+✔ You approved codex to run git -C relaleap-FabricPC diff --stat this time
+
+• Ran git -C relaleap-FabricPC diff --stat
+  └  README.md | 126 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+     1 file changed, 125 insertions(+), 1 deletion(-)
+
+✔ You approved codex to run rg -n "torch|pandas|pydantic|cFabricPC|TODO|FIXME|—|footgun|gotcha|rabbit hol... this time
+
+✔ You approved codex to run git -C relaleap-FabricPC diff -- README.md docs/work-plans/20260702-codex-sin... this time
+
+• Explored
+  └ Search torch|pandas|pydantic|cFabricPC|TODO|FIXME|—|footgun|gotcha|rabbit hole|bikeshed in README.md
+
+• Ran git -C relaleap-FabricPC diff -- README.md docs/work-plans/20260702-codex-singbuntu24-work-plan.md docs/work-plans/20260702-codex-singbuntu24-work-log.md
+  └ diff --git a/README.md b/README.md
+    index 8489a2f..b19fa77 100644
+    … +128 lines (ctrl + t to view transcript)
+    +  The preserved contract is the command surface, artifact schema, and invariant
+    +  semantics.
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The docs scan is clean apart from the intentional FabricPC resolution test. I’m rerunning syntax checks after the JAX setup changes.
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python -m py_compile relaleap_fabricpc/*.py relale... this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python -m py_compile relaleap_fabricpc/*.py relaleap_fabricpc/experiments/*.py tests/*.py
+  └ (no output)
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• Final syntax checks passed. I’m doing one last status check with ignored files hidden so the source changes are clear.
+
+✔ You approved codex to run git -C relaleap-FabricPC status --short this time
+
+• Ran git -C relaleap-FabricPC status --short
+  └  M README.md
+    ?? .gitignore
+    … +3 lines (ctrl + t to view transcript)
+    ?? relaleap_fabricpc/
+    ?? tests/
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• Implemented the Phase 0 port in relaleap-FabricPC without modifying FabricPC or relaleap.
+
+  Added:
+
+  - JAX/FabricPC package scaffold: relaleap-FabricPC/pyproject.toml
+  - Local FabricPC custom residual node: relaleap-FabricPC/relaleap_fabricpc/fabricpc_nodes.py
+  - JAX/Optax Phase 0 smoke harness: relaleap-FabricPC/relaleap_fabricpc/smoke.py
+  - Run, compare, and artifact-check commands:
+    relaleap-FabricPC/relaleap_fabricpc/experiments/run.py,
+    relaleap-FabricPC/relaleap_fabricpc/experiments/compare.py,
+    relaleap-FabricPC/relaleap_fabricpc/experiments/check_artifacts.py
+
+  - Phase 0 configs under relaleap-FabricPC/configs
+  - README usage docs: relaleap-FabricPC/README.md
+  - Work plan and log:
+    relaleap-FabricPC/docs/work-plans/20260702-codex-singbuntu24-work-plan.md,
+    relaleap-FabricPC/docs/work-plans/20260702-codex-singbuntu24-work-log.md
+
+  - Focused tests under relaleap-FabricPC/tests
+
+  Verification passed:
+
+  py_compile: passed
+  pytest: 10 passed
+  default Phase 0 comparison: status ok, verdict pass
+  artifact checker: status pass
+
+  The default comparison wrote ignored artifacts under results/comparisons/phase0; .gitignore now ignores generated results, baselines, and Python caches. The local commands default JAX to CPU because the current CUDA/cuDNN backend fails to initialize in this environment, but users can override that with JAX_PLATFORMS before launching Python.
+
+─ Worked for 17m 35s ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+› This is a problem I've run into with codex before (the inability for your runs to access my GPU). Please create a script for me that is short so that I can run with GPU myself (and then you can examine results/ files as needed). Also, undo that .gitignore change and allow the results/ directory to make it into the repo on github as well.
+
+
+• I’ll make this as a small repo script that sets JAX_PLATFORMS=gpu before Python starts, so it overrides the CPU default in jax_setup.py. I’ll also remove the results/ ignore by undoing the .gitignore file I added.
+
+✔ You approved codex to run sed -n '1,120p' .gitignore this time
+
+✔ You approved codex to run find . -maxdepth 3 -type d | sort this time
+
+• Explored
+  └ Read .gitignore
+    List .
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• I’ll keep the script intentionally strict: it requests gpu and does not silently fall back to CPU. That way the result artifacts actually represent a GPU run.
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python - <<'PY' ... this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python - <<'PY'
+  │ from pathlib import Path
+  │ root = Path('/home/ni/repos/fpc/relaleap-FabricPC')
+  │ … +46 lines
+  └ (no output)
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• Since .gitignore is removed, the Python caches created by my test runs would otherwise show up as untracked files. I’m going to remove only those generated cache directories, leaving results/ intact.
+
+✔ You approved codex to run rm -rf .pytest_cache relaleap_fabricpc/__pycache__ relaleap_fabricpc/experime... this time
+
+• Ran rm -rf .pytest_cache relaleap_fabricpc/__pycache__ relaleap_fabricpc/experiments/__pycache__ tests/__pycache__
+  └ (no output)
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• The GPU script is in place and executable, .gitignore is gone, and generated caches are removed. I’ll do a syntax check of the shell script and a final status check without running the GPU workload here.
+
+• Running bash -n scripts/run_phase0_gpu.sh
+
+• Running git status --short
+
+✗ You canceled the request to run bash -n scripts/run_phase0_gpu.sh
+
+• Ran bash -n scripts/run_phase0_gpu.sh
+  └ (no output)
+
+• Explored
+  └ Read run_phase0_gpu.sh
+
+■ Conversation interrupted - tell the model what to do differently. Something went wrong? Hit `/feedback` to report the issue.
+
+
+› I ran it for you. Please don't specify any backend (i'm hopeful the GPU will get picked up by JAX automatically):   ni@singbuntu24:~/repos/fpc/relaleap-FabricPC$ bash scripts/run_phase0_gpu.sh
+  E0702 08:15:35.148111  225868 cuda_dnn.cc:466] Could not create cudnn handle: CUDNN_STATUS_NOT_INITIALIZED
+  E0702 08:15:35.148153  225868 cuda_dnn.cc:470] Memory usage: 8102608896 bytes free, 8318484480 bytes total.
+  E0702 08:15:35.148171  225868 cuda_dnn.cc:480] Possibly insufficient driver version: 550.163.1
+  E0702 08:15:35.149738  225868 cuda_dnn.cc:466] Could not create cudnn handle: CUDNN_STATUS_NOT_INITIALIZED
+  E0702 08:15:35.149771  225868 cuda_dnn.cc:470] Memory usage: 8102608896 bytes free, 8318484480 bytes total.
+  E0702 08:15:35.149796  225868 cuda_dnn.cc:480] Possibly insufficient driver version: 550.163.1
+  E0702 08:15:35.149926  225868 cuda_dnn.cc:466] Could not create cudnn handle: CUDNN_STATUS_NOT_INITIALIZED
+  E0702 08:15:35.149948  225868 cuda_dnn.cc:470] Memory usage: 8102608896 bytes free, 8318484480 bytes total.
+  E0702 08:15:35.149960  225868 cuda_dnn.cc:480] Possibly insufficient driver version: 550.163.1
+  Traceback (most recent call last):
+    File "/home/ni/repos/fpc/py3/lib/python3.12/site-packages/jax/_src/xla_bridge.py", line 826, in backends
+      backend = _init_backend(platform)
+                ^^^^^^^^^^^^^^^^^^^^^^^
+    File "/home/ni/repos/fpc/py3/lib/python3.12/site-packages/jax/_src/xla_bridge.py", line 902, in _init_backend
+      raise RuntimeError(
+  RuntimeError: Backend 'rocm' is not in the list of known backends: ['cpu', 'tpu', 'cuda'].
+
+  During handling of the above exception, another exception occurred:
+
+  Traceback (most recent call last):
+    File "<frozen runpy>", line 198, in _run_module_as_main
+    File "<frozen runpy>", line 88, in _run_code
+    File "/home/ni/repos/fpc/relaleap-FabricPC/relaleap_fabricpc/experiments/compare.py", line 551, in <module>
+      main()
+    File "/home/ni/repos/fpc/relaleap-FabricPC/relaleap_fabricpc/experiments/compare.py", line 528, in main
+      comparison = run_comparison(
+                   ^^^^^^^^^^^^^^^
+    File "/home/ni/repos/fpc/relaleap-FabricPC/relaleap_fabricpc/experiments/compare.py", line 49, in run_comparison
+      summary = run(config_path, run_dir)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/home/ni/repos/fpc/relaleap-FabricPC/relaleap_fabricpc/experiments/run.py", line 102, in run
+      backend_info = _load_backend_info()
+                     ^^^^^^^^^^^^^^^^^^^^
+    File "/home/ni/repos/fpc/relaleap-FabricPC/relaleap_fabricpc/experiments/run.py", line 32, in _load_backend_info
+      backend = jax.default_backend()
+                ^^^^^^^^^^^^^^^^^^^^^
+    File "/home/ni/repos/fpc/py3/lib/python3.12/site-packages/jax/_src/xla_bridge.py", line 1029, in default_backend
+      return get_backend(None).platform
+             ^^^^^^^^^^^^^^^^^
+    File "/home/ni/repos/fpc/py3/lib/python3.12/site-packages/jax/_src/xla_bridge.py", line 958, in get_backend
+      return _get_backend_uncached(platform)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/home/ni/repos/fpc/py3/lib/python3.12/site-packages/jax/_src/xla_bridge.py", line 937, in _get_backend_uncached
+      bs = backends()
+           ^^^^^^^^^^
+    File "/home/ni/repos/fpc/py3/lib/python3.12/site-packages/jax/_src/xla_bridge.py", line 842, in backends
+      raise RuntimeError(err_msg)
+  RuntimeError: Unable to initialize backend 'rocm': Backend 'rocm' is not in the list of known backends: ['cpu', 'tpu', 'cuda']. (set JAX_PLATFORMS='' to automatically choose an available backend)
+  ni@singbuntu24:~/repos/fpc/relaleap-FabricPC$
+
+
+• The failure is consistent with an existing JAX_PLATFORMS=rocm or similar value being preserved by the wrapper. I’ll change the wrapper so it unsets JAX_PLATFORMS and add a repo-local flag that tells our JAX setup not to force CPU for that script.
+
+• I’ll make the GPU script rely on JAX’s automatic backend selection: no cpu, no gpu, no cuda, and no preservation of a stale rocm value.
+
+
+✔ You approved codex to run /home/ni/repos/fpc/py3/bin/python - <<'PY' ... this time
+
+• Ran /home/ni/repos/fpc/py3/bin/python - <<'PY'
+  │ from pathlib import Path
+  │ root = Path('/home/ni/repos/fpc/relaleap-FabricPC')
+  │ … +55 lines
+  └ (no output)
+
+• Context compacted
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• I’ll verify the script and JAX setup now, then make the smallest correction needed so the GPU run does not force or preserve a backend selection.

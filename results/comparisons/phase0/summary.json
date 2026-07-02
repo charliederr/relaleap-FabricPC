@@ -1,0 +1,323 @@
+{
+  "loss_scale_note": "Residual objectives may use different loss scales; compare each trajectory against its own initial loss.",
+  "out_dir": "results/comparisons/phase0",
+  "runs": [
+    {
+      "artifact_invariants": {
+        "metrics_csv": true,
+        "notes_md": true,
+        "summary_json": true
+      },
+      "atoms_per_column": 4,
+      "base_loss": 4.013883590698242,
+      "config_path": "configs/char_smoke.yaml",
+      "contextual_router_hidden_dim": 64,
+      "dataset": "tiny_shakespeare_char",
+      "error": null,
+      "experiment_id": "char_smoke",
+      "final_residual_loss": 3.92986178,
+      "hep_alpha_sweep": [],
+      "hep_settling_objective": "residual_adapter",
+      "hep_update_clip_norm": null,
+      "initial_residual_loss": 4.01388359,
+      "invariants": {
+        "frozen_base_unchanged": true,
+        "hep_alpha_0_equivalence": true,
+        "residual_parameters_updated": true,
+        "zero_init_identity": true
+      },
+      "num_columns": 8,
+      "pinned_support": false,
+      "residual_loss_delta": -0.08402180999999986,
+      "residual_loss_ratio": 0.9790672030924544,
+      "residual_objective": "supervised_ce",
+      "run_dir": "results/comparisons/phase0/runs/char_smoke",
+      "status": "ok",
+      "support_audit": {
+        "column_counts": [
+          128,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "dead_columns": 7,
+        "max_column_fraction": 1.0,
+        "num_columns": 8,
+        "support_positions": 128,
+        "support_set_counts": {
+          "0": 128
+        },
+        "top_k": 1,
+        "total_support_slots": 128,
+        "unique_support_sets": 1,
+        "used_columns": 1
+      },
+      "support_instability": {
+        "hep_alpha": 1.0,
+        "hep_update_clip_norm": null,
+        "pc_steps": 1,
+        "pinned_vs_repicked_logit_delta": 0.0,
+        "support_change_fraction": 0.0,
+        "support_changed": false,
+        "support_changed_positions": 0,
+        "support_positions": 128,
+        "support_transition_count": 0
+      },
+      "support_router": "linear",
+      "support_stress": false,
+      "support_stress_preset": false,
+      "top_k": 1,
+      "training_steps": 10,
+      "zero_init_loss": 4.013883590698242
+    },
+    {
+      "artifact_invariants": {
+        "metrics_csv": true,
+        "notes_md": true,
+        "summary_json": true
+      },
+      "atoms_per_column": 4,
+      "base_loss": 4.013883590698242,
+      "config_path": "configs/char_smoke_pc.yaml",
+      "contextual_router_hidden_dim": 64,
+      "dataset": "tiny_shakespeare_char",
+      "error": null,
+      "experiment_id": "char_smoke_pc",
+      "final_residual_loss": 0.02937417,
+      "hep_alpha_sweep": [],
+      "hep_settling_objective": "residual_adapter",
+      "hep_update_clip_norm": null,
+      "initial_residual_loss": 0.02952804,
+      "invariants": {
+        "frozen_base_unchanged": true,
+        "hep_alpha_0_equivalence": true,
+        "residual_parameters_updated": true,
+        "zero_init_identity": true
+      },
+      "num_columns": 8,
+      "pinned_support": false,
+      "residual_loss_delta": -0.00015386999999999693,
+      "residual_loss_ratio": 0.9947890208764281,
+      "residual_objective": "pc_logit_mse",
+      "run_dir": "results/comparisons/phase0/runs/char_smoke_pc",
+      "status": "ok",
+      "support_audit": {
+        "column_counts": [
+          128,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "dead_columns": 7,
+        "max_column_fraction": 1.0,
+        "num_columns": 8,
+        "support_positions": 128,
+        "support_set_counts": {
+          "0": 128
+        },
+        "top_k": 1,
+        "total_support_slots": 128,
+        "unique_support_sets": 1,
+        "used_columns": 1
+      },
+      "support_instability": {
+        "hep_alpha": 1.0,
+        "hep_update_clip_norm": null,
+        "pc_steps": 1,
+        "pinned_vs_repicked_logit_delta": 0.0,
+        "support_change_fraction": 0.0,
+        "support_changed": false,
+        "support_changed_positions": 0,
+        "support_positions": 128,
+        "support_transition_count": 0
+      },
+      "support_router": "linear",
+      "support_stress": false,
+      "support_stress_preset": false,
+      "top_k": 1,
+      "training_steps": 10,
+      "zero_init_loss": 4.013883590698242
+    },
+    {
+      "artifact_invariants": {
+        "metrics_csv": true,
+        "notes_md": true,
+        "summary_json": true
+      },
+      "atoms_per_column": 4,
+      "base_loss": 4.013883590698242,
+      "config_path": "configs/char_smoke_hep.yaml",
+      "contextual_router_hidden_dim": 64,
+      "dataset": "tiny_shakespeare_char",
+      "error": null,
+      "experiment_id": "char_smoke_hep",
+      "final_residual_loss": 3.92986178,
+      "hep_alpha_sweep": [
+        {
+          "alpha": 0.0,
+          "loss": 3.9298617839813232,
+          "max_logit_delta_from_ordinary": 0.0,
+          "pinned_vs_repicked_logit_delta": 0.0,
+          "support_change_fraction": 0.0,
+          "support_transition_count": 0.0
+        },
+        {
+          "alpha": 0.25,
+          "loss": 3.910778284072876,
+          "max_logit_delta_from_ordinary": 0.06316345930099487,
+          "pinned_vs_repicked_logit_delta": 0.0,
+          "support_change_fraction": 0.0,
+          "support_transition_count": 0.0
+        },
+        {
+          "alpha": 0.5,
+          "loss": 3.892465353012085,
+          "max_logit_delta_from_ordinary": 0.12632635235786438,
+          "pinned_vs_repicked_logit_delta": 0.0,
+          "support_change_fraction": 0.0,
+          "support_transition_count": 0.0
+        },
+        {
+          "alpha": 1.0,
+          "loss": 3.8581383228302,
+          "max_logit_delta_from_ordinary": 0.252652645111084,
+          "pinned_vs_repicked_logit_delta": 0.0,
+          "support_change_fraction": 0.0,
+          "support_transition_count": 0.0
+        }
+      ],
+      "hep_settling_objective": "residual_adapter",
+      "hep_update_clip_norm": null,
+      "initial_residual_loss": 4.01388359,
+      "invariants": {
+        "frozen_base_unchanged": true,
+        "hep_alpha_0_equivalence": true,
+        "residual_parameters_updated": true,
+        "zero_init_identity": true
+      },
+      "num_columns": 8,
+      "pinned_support": false,
+      "residual_loss_delta": -0.08402180999999986,
+      "residual_loss_ratio": 0.9790672030924544,
+      "residual_objective": "supervised_ce",
+      "run_dir": "results/comparisons/phase0/runs/char_smoke_hep",
+      "status": "ok",
+      "support_audit": {
+        "column_counts": [
+          128,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "dead_columns": 7,
+        "max_column_fraction": 1.0,
+        "num_columns": 8,
+        "support_positions": 128,
+        "support_set_counts": {
+          "0": 128
+        },
+        "top_k": 1,
+        "total_support_slots": 128,
+        "unique_support_sets": 1,
+        "used_columns": 1
+      },
+      "support_instability": {
+        "hep_alpha": 1.0,
+        "hep_update_clip_norm": null,
+        "pc_steps": 2,
+        "pinned_vs_repicked_logit_delta": 0.0,
+        "support_change_fraction": 0.0,
+        "support_changed": false,
+        "support_changed_positions": 0,
+        "support_positions": 128,
+        "support_transition_count": 0
+      },
+      "support_router": "linear",
+      "support_stress": false,
+      "support_stress_preset": false,
+      "top_k": 1,
+      "training_steps": 10,
+      "zero_init_loss": 4.013883590698242
+    }
+  ],
+  "runtime_seconds": 9.4739,
+  "status": "ok",
+  "verdict": {
+    "artifact_invariant_count": 9,
+    "artifact_invariants_passed": true,
+    "best_hep_alpha_by_loss": {
+      "alpha": 1.0,
+      "experiment_id": "char_smoke_hep",
+      "loss": 3.8581383228302,
+      "max_logit_delta_from_ordinary": 0.252652645111084
+    },
+    "failed_artifact_invariants": [],
+    "failed_invariants": [],
+    "hep_alpha_acceptance": {
+      "accepted_alpha": {
+        "accepted": true,
+        "alpha": 0.25,
+        "alpha0_loss": 3.9298617839813232,
+        "experiment_id": "char_smoke_hep",
+        "loss": 3.910778284072876,
+        "loss_improvement_from_alpha0": 0.019083499908447266,
+        "max_logit_delta_from_ordinary": 0.06316345930099487
+      },
+      "baseline_alpha0": {
+        "alpha": 0.0,
+        "experiment_id": "char_smoke_hep",
+        "loss": 3.9298617839813232,
+        "max_logit_delta_from_ordinary": 0.0
+      },
+      "candidate_count": 3,
+      "candidates": [
+        {
+          "accepted": true,
+          "alpha": 0.25,
+          "alpha0_loss": 3.9298617839813232,
+          "experiment_id": "char_smoke_hep",
+          "loss": 3.910778284072876,
+          "loss_improvement_from_alpha0": 0.019083499908447266,
+          "max_logit_delta_from_ordinary": 0.06316345930099487
+        },
+        {
+          "accepted": false,
+          "alpha": 0.5,
+          "alpha0_loss": 3.9298617839813232,
+          "experiment_id": "char_smoke_hep",
+          "loss": 3.892465353012085,
+          "loss_improvement_from_alpha0": 0.03739643096923828,
+          "max_logit_delta_from_ordinary": 0.12632635235786438
+        },
+        {
+          "accepted": false,
+          "alpha": 1.0,
+          "alpha0_loss": 3.9298617839813232,
+          "experiment_id": "char_smoke_hep",
+          "loss": 3.8581383228302,
+          "loss_improvement_from_alpha0": 0.07172346115112305,
+          "max_logit_delta_from_ordinary": 0.252652645111084
+        }
+      ],
+      "max_logit_delta_from_ordinary": 0.1,
+      "min_loss_improvement_from_alpha0": 0.0,
+      "rejected_count": 2,
+      "status": "accepted"
+    },
+    "invariant_count": 12,
+    "invariants_passed": true,
+    "status": "pass"
+  }
+}
