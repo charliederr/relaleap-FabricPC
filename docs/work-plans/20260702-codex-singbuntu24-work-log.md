@@ -40,4 +40,4 @@
 - Mirrored 92 source Phase 0 YAML configs into `configs/` and created `baselines/phase0_fabricpc_comparison.json` from the passing FabricPC comparison.
 - Verified `/home/ni/repos/fpc/py3/bin/python -m pytest` passes with 19 tests, then reran the default comparison and artifact checker successfully.
 - JAX GPU visibility was confirmed by the user (`gpu`, `CudaDevice(id=0)`); stopped backend-probe work and returned to porting/artifact parity.
-
+- Added `scripts/run_phase0_experiment.sh` for one-off config runs and `scripts/run_phase0_comparison.sh` for default or custom comparison experiments.

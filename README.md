@@ -56,6 +56,38 @@ The summary includes the Phase 0 model invariants:
 - HEP alpha `0.0` matches ordinary residual inference;
 - residual parameters update during residual training.
 
+For a shorter experiment wrapper, run:
+
+```bash
+scripts/run_phase0_experiment.sh
+```
+
+By default this runs `configs/char_smoke_hep_support_stress_clipped.yaml` and
+writes under `results/runs/`. Pass a config and output directory explicitly:
+
+```bash
+scripts/run_phase0_experiment.sh \
+  configs/token_larger_support_wide_contextual_router_hep_temporal_clipped_objective_gate.yaml \
+  results/runs/token_contextual_router_trial
+```
+
+For a checked comparison wrapper, run:
+
+```bash
+scripts/run_phase0_comparison.sh
+```
+
+By default this runs the default Phase 0 comparison and checks it against
+`baselines/phase0_fabricpc_comparison.json`. Pass an output directory first,
+then two or more configs to compare a custom set:
+
+```bash
+scripts/run_phase0_comparison.sh \
+  results/comparisons/support_stress_trial \
+  configs/char_smoke_hep_support_stress_clipped.yaml \
+  configs/char_smoke_hep_support_stress_temporal_clipped.yaml
+```
+
 ## Run The Phase 0 Comparison On GPU
 
 Use the short GPU wrapper when you want to run the fuller check yourself on a

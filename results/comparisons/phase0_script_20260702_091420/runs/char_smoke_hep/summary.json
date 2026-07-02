@@ -1,0 +1,132 @@
+{
+  "artifact_invariants": {
+    "metrics_csv": true,
+    "notes_md": true,
+    "summary_json": true
+  },
+  "backend": "cpu",
+  "config_path": "configs/char_smoke_hep.yaml",
+  "cuda_available": false,
+  "device": "cpu",
+  "error": null,
+  "experiment_id": "char_smoke_hep",
+  "fabricpc_error": null,
+  "fabricpc_file": "/home/ni/repos/fpc/FabricPC/fabricpc/__init__.py",
+  "final_smoke_loss": 3.92986178,
+  "jax_available": true,
+  "jax_devices": [
+    "cpu:0"
+  ],
+  "jax_version": "0.10.1",
+  "out_dir": "results/comparisons/phase0_script_20260702_091420/runs/char_smoke_hep",
+  "phase0": {
+    "atoms_per_column": 4,
+    "base_loss": 4.013883590698242,
+    "batch_size": 4,
+    "ce_anchor_weight": 0.1,
+    "confidence_penalty_weight": 0.01,
+    "contextual_router_hidden_dim": 64,
+    "dataset": "tiny_shakespeare_char",
+    "focal_gamma": 2.0,
+    "hep_alpha_sweep": [
+      {
+        "alpha": 0.0,
+        "loss": 3.9298617839813232,
+        "max_logit_delta_from_ordinary": 0.0,
+        "pinned_vs_repicked_logit_delta": 0.0,
+        "support_change_fraction": 0.0,
+        "support_transition_count": 0.0
+      },
+      {
+        "alpha": 0.25,
+        "loss": 3.910778284072876,
+        "max_logit_delta_from_ordinary": 0.06316345930099487,
+        "pinned_vs_repicked_logit_delta": 0.0,
+        "support_change_fraction": 0.0,
+        "support_transition_count": 0.0
+      },
+      {
+        "alpha": 0.5,
+        "loss": 3.892465353012085,
+        "max_logit_delta_from_ordinary": 0.12632635235786438,
+        "pinned_vs_repicked_logit_delta": 0.0,
+        "support_change_fraction": 0.0,
+        "support_transition_count": 0.0
+      },
+      {
+        "alpha": 1.0,
+        "loss": 3.8581383228302,
+        "max_logit_delta_from_ordinary": 0.252652645111084,
+        "pinned_vs_repicked_logit_delta": 0.0,
+        "support_change_fraction": 0.0,
+        "support_transition_count": 0.0
+      }
+    ],
+    "hep_settling_objective": "residual_adapter",
+    "hep_update_clip_norm": null,
+    "initial_loss": 4.013883590698242,
+    "invariants": {
+      "frozen_base_unchanged": true,
+      "hep_alpha_0_equivalence": true,
+      "residual_parameters_updated": true,
+      "zero_init_identity": true
+    },
+    "label_smoothing_weight": 0.05,
+    "margin_penalty_weight": 0.01,
+    "max_hep_alpha0_logit_delta": 0.0,
+    "max_zero_init_logit_delta": 0.0,
+    "num_columns": 8,
+    "pinned_support": false,
+    "post_step_loss": 3.9298617839813232,
+    "residual_objective": "supervised_ce",
+    "residual_parameter_delta": 12.403414286702173,
+    "seq_len": 32,
+    "support_audit": {
+      "column_counts": [
+        128,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "dead_columns": 7,
+      "max_column_fraction": 1.0,
+      "num_columns": 8,
+      "support_positions": 128,
+      "support_set_counts": {
+        "0": 128
+      },
+      "top_k": 1,
+      "total_support_slots": 128,
+      "unique_support_sets": 1,
+      "used_columns": 1
+    },
+    "support_instability": {
+      "hep_alpha": 1.0,
+      "hep_update_clip_norm": null,
+      "pc_steps": 2,
+      "pinned_vs_repicked_logit_delta": 0.0,
+      "support_change_fraction": 0.0,
+      "support_changed": false,
+      "support_changed_positions": 0,
+      "support_positions": 128,
+      "support_transition_count": 0
+    },
+    "support_router": "linear",
+    "support_stress": false,
+    "support_stress_preset": false,
+    "target_logit_margin": 0.25,
+    "temporal_consistency_weight": 0.01,
+    "top_k": 1,
+    "training_steps": 10,
+    "vocab_size": 34,
+    "zero_init_loss": 4.013883590698242
+  },
+  "platform": "Linux-6.14.0-37-generic-x86_64-with-glibc2.39",
+  "runtime_seconds": 0.4494,
+  "seed": 1,
+  "status": "ok"
+}

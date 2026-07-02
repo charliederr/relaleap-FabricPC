@@ -59,3 +59,4 @@ the verdict should pass when all Phase 0 model and artifact invariants pass.
 - Keep the Phase 0 default comparison small and passing on CPU.
 - Use `baselines/phase0_fabricpc_comparison.json` as the checked FabricPC baseline for artifact drift checks.
 - Treat the mirrored 92 source configs as available run surfaces; validate broad config compatibility with lightweight tests rather than running every large config by default.
+- Provide user-run scripts for one-off config experiments and checked comparison experiments under `scripts/`.

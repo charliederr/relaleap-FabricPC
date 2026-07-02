@@ -1,0 +1,12 @@
+step,seed,experiment_id,phase,residual_objective,base_loss,residual_loss,zero_init_loss,residual_parameter_delta,max_zero_init_logit_delta,max_hep_alpha0_logit_delta,hep_alpha,hep_loss,max_hep_logit_delta_from_ordinary,hep_support_change_fraction,hep_pinned_vs_repicked_logit_delta,device,error,status
+0,1,char_smoke_pc,initial,pc_logit_mse,4.01388359,0.02952804,4.01388359,0.00000000,0.00000000,0.00000000,,,,,,cpu,,ok
+1,1,char_smoke_pc,pc_residual_update,pc_logit_mse,4.01388359,0.02950996,4.01388359,1.27871683,0.00000000,0.00000000,,,,,,cpu,,ok
+2,1,char_smoke_pc,pc_residual_update,pc_logit_mse,4.01388359,0.02949247,4.01388359,2.54350429,0.00000000,0.00000000,,,,,,cpu,,ok
+3,1,char_smoke_pc,pc_residual_update,pc_logit_mse,4.01388359,0.02947568,4.01388359,3.77681466,0.00000000,0.00000000,,,,,,cpu,,ok
+4,1,char_smoke_pc,pc_residual_update,pc_logit_mse,4.01388359,0.02945952,4.01388359,4.98623764,0.00000000,0.00000000,,,,,,cpu,,ok
+5,1,char_smoke_pc,pc_residual_update,pc_logit_mse,4.01388359,0.02944395,4.01388359,6.17940404,0.00000000,0.00000000,,,,,,cpu,,ok
+6,1,char_smoke_pc,pc_residual_update,pc_logit_mse,4.01388359,0.02942895,4.01388359,7.37238829,0.00000000,0.00000000,,,,,,cpu,,ok
+7,1,char_smoke_pc,pc_residual_update,pc_logit_mse,4.01388359,0.02941452,4.01388359,8.60216625,0.00000000,0.00000000,,,,,,cpu,,ok
+8,1,char_smoke_pc,pc_residual_update,pc_logit_mse,4.01388359,0.02940058,4.01388359,9.81822799,0.00000000,0.00000000,,,,,,cpu,,ok
+9,1,char_smoke_pc,pc_residual_update,pc_logit_mse,4.01388359,0.02938716,4.01388359,11.01715029,0.00000000,0.00000000,,,,,,cpu,,ok
+10,1,char_smoke_pc,pc_residual_update,pc_logit_mse,4.01388359,0.02937417,4.01388359,12.19574503,0.00000000,0.00000000,,,,,,cpu,,ok

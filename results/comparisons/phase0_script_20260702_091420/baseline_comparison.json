@@ -1,0 +1,119 @@
+{
+  "baseline_path": "baselines/phase0_fabricpc_comparison.json",
+  "candidate": {
+    "accepted_hep_alpha": {
+      "alpha": 0.25,
+      "experiment_id": "char_smoke_hep",
+      "loss": 3.910778284072876,
+      "loss_improvement_from_alpha0": 0.019083499908447266,
+      "max_logit_delta_from_ordinary": 0.06316345930099487
+    },
+    "accepted_status": "accepted",
+    "artifact_invariants": {
+      "count": 9,
+      "failed": [],
+      "passed": true
+    },
+    "comparison_status": "ok",
+    "config_paths": [
+      "configs/char_smoke.yaml",
+      "configs/char_smoke_pc.yaml",
+      "configs/char_smoke_hep.yaml"
+    ],
+    "phase0_invariants": {
+      "count": 12,
+      "failed": [],
+      "passed": true
+    },
+    "run_artifact_invariants": [
+      {
+        "artifact_invariants": {
+          "count": 3,
+          "failed": [],
+          "passed": true
+        },
+        "config_path": "configs/char_smoke.yaml",
+        "experiment_id": "char_smoke"
+      },
+      {
+        "artifact_invariants": {
+          "count": 3,
+          "failed": [],
+          "passed": true
+        },
+        "config_path": "configs/char_smoke_pc.yaml",
+        "experiment_id": "char_smoke_pc"
+      },
+      {
+        "artifact_invariants": {
+          "count": 3,
+          "failed": [],
+          "passed": true
+        },
+        "config_path": "configs/char_smoke_hep.yaml",
+        "experiment_id": "char_smoke_hep"
+      }
+    ],
+    "schema_version": 3,
+    "verdict_status": "pass"
+  },
+  "mismatches": [],
+  "reference": {
+    "accepted_hep_alpha": {
+      "alpha": 0.25,
+      "experiment_id": "char_smoke_hep",
+      "loss": 3.910778284072876,
+      "loss_improvement_from_alpha0": 0.019083499908447266,
+      "max_logit_delta_from_ordinary": 0.06316345930099487
+    },
+    "accepted_status": "accepted",
+    "artifact_invariants": {
+      "count": 9,
+      "failed": [],
+      "passed": true
+    },
+    "comparison_status": "ok",
+    "config_paths": [
+      "configs/char_smoke.yaml",
+      "configs/char_smoke_pc.yaml",
+      "configs/char_smoke_hep.yaml"
+    ],
+    "phase0_invariants": {
+      "count": 12,
+      "failed": [],
+      "passed": true
+    },
+    "run_artifact_invariants": [
+      {
+        "artifact_invariants": {
+          "count": 3,
+          "failed": [],
+          "passed": true
+        },
+        "config_path": "configs/char_smoke.yaml",
+        "experiment_id": "char_smoke"
+      },
+      {
+        "artifact_invariants": {
+          "count": 3,
+          "failed": [],
+          "passed": true
+        },
+        "config_path": "configs/char_smoke_pc.yaml",
+        "experiment_id": "char_smoke_pc"
+      },
+      {
+        "artifact_invariants": {
+          "count": 3,
+          "failed": [],
+          "passed": true
+        },
+        "config_path": "configs/char_smoke_hep.yaml",
+        "experiment_id": "char_smoke_hep"
+      }
+    ],
+    "schema_version": 3,
+    "verdict_status": "pass"
+  },
+  "status": "pass"
+}
